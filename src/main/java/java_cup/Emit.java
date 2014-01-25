@@ -342,26 +342,25 @@ public class Emit {
         emit_package(out);
 
         /* class header */
-        out.println("/** CUP generated " + class_or_interface
-                + " containing symbol constants. */");
         out.println("public " + class_or_interface + " "
                 + symbol_const_class_name + " {");
-
-        out.println("  /* terminals */");
+        out.println();
+        out.println("    /* terminals */");
 
         /* walk over the terminals */              /* later might sort these */
         for (Enumeration e = Terminal.all(); e.hasMoreElements();) {
             term = (Terminal) e.nextElement();
 
             /* output a constant decl for the Terminal */
-            out.println("  public static final int " + term.name() + " = "
+            out.println("    public static final int " + term.name() + " = "
                     + term.id() + ";");
         }
 
         /* do the non terminals if they want them (parser doesn't need them) */
-        if (emit_non_terms) {
+//        if (emit_non_terms) {
+        if (true) {
             out.println();
-            out.println("  /* non terminals */");
+            out.println("    /* non terminals */");
 
             /* walk over the non terminals */       /* later might sort these */
 
@@ -372,7 +371,7 @@ public class Emit {
                 // ****
 
                 /* output a constant decl for the Terminal */
-                out.println("  static final int " + nt.name() + " = "
+                out.println("//    static final int " + nt.name() + " = "
                         + nt.id() + ";");
             }
         }
@@ -595,7 +594,8 @@ public class Emit {
         production_table_time = System.currentTimeMillis() - start_time;
     }
 
-    /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
+    public final static int DEFAULT_REDUCE = -1;
+
     /**
      * Emit the action table.
      *
@@ -613,59 +613,43 @@ public class Emit {
 
         /* collect values for the action table */
         short[][] action_table = new short[act_tab.num_states()][];
+        /* make temporary table for the row. */
+        short[] temp_table = new short[2 * parse_action_row.size()];
+
         /* do each state (row) of the action table */
         for (int i = 0; i < act_tab.num_states(); i++) {
             /* get the row */
-            row = act_tab.under_state[i];
-
-            row.default_reduce = -1;
-
-            /* make temporary table for the row. */
-            short[] temp_table = new short[2 * parse_action_row.size()];
+            Action[] row_under_term = (row = act_tab.under_state[i]).under_term;
             int nentries = 0;
-
             /* do each column */
             for (int j = 0; j < parse_action_row.size(); j++) {
-                /* extract the action from the table */
-                act = row.under_term[j];
-
-                /* skip error entries these are all defaulted out */
-                if (act.kind() != Action.ERROR) {
-                    /* first put in the symbol id, then the actual entry */
-
-                    /* shifts get positive entries of state size + 1 */
-                    if (act.kind() == Action.SHIFT) {
-                        /* make entry */
+                act = row_under_term[j];
+                switch (act.kind()) {
+                    case Action.ERROR:
+                        // skip error entries these are all defaulted out
+                        break;
+                    case Action.SHIFT:
+                        // shifts get positive entries of state size + 1
                         temp_table[nentries++] = (short) j;
                         temp_table[nentries++] = (short) (((ShiftAction) act).shift_to().index() + 1);
-                    } /* reduce actions get negated entries of Production# + 1 */ else if (act.kind() == Action.REDUCE) {
-                        /* if its the default entry let it get defaulted out */
+                        break;
+                    case Action.REDUCE:
                         red = ((ReduceAction) act).reduce_with().id();
-                        if (red != row.default_reduce) {
-                            /* make entry */
+                        if (red != DEFAULT_REDUCE) {
                             temp_table[nentries++] = (short) j;
                             temp_table[nentries++] = (short) (-(red + 1));
                         }
-                    } else if (act.kind() == Action.NONASSOC) {
-                        /* do nothing, since we just want a syntax error */
-                    } /* shouldn't be anything else */ else {
+                        break;
+                    case Action.NONASSOC:
+                        // do nothing, since we just want a syntax error
+                        break;
+                    default:
                         throw new InternalException("Unrecognized action code "
                                 + act.kind() + " found in parse table");
-                    }
                 }
             }
-
-            /* now we know how big to make the row */
-            action_table[i] = new short[nentries + 2];
-            System.arraycopy(temp_table, 0, action_table[i], 0, nentries);
-
-            /* finish off the row with a default entry */
-            action_table[i][nentries++] = -1;
-            if (row.default_reduce != -1) {
-                action_table[i][nentries++] = (short) (-(row.default_reduce + 1));
-            } else {
-                action_table[i][nentries++] = 0;
-            }
+            
+            System.arraycopy(temp_table, 0, action_table[i] = new short[nentries], 0, nentries);
         }
 
         /* finish off the init of the table */
@@ -792,7 +776,6 @@ public class Emit {
         out.println("//----------------------------------------------------");
         out.println("// The following code was generated by "
                 + Version.title_str);
-        out.println("// " + new Date());
         out.println("//----------------------------------------------------");
         out.println();
         emit_package(out);
@@ -804,9 +787,10 @@ public class Emit {
 
         /* class header */
         out.println();
-        out.println("/** " + Version.title_str + " generated parser.");
-        out.println("  * @version " + new Date());
-        out.println("  */");
+        out.println("/**");
+        out.println(" * ");
+        out.println(" * @version " + new Date());
+        out.println(" */");
         /* TUM changes; proposed by Henning Niss 20050628: added typeArgument */
         out.println("public class " + parser_class_name + typeArgument()
                 + " extends lr_parser {");

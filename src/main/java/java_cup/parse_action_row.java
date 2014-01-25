@@ -57,12 +57,5 @@ public class parse_action_row {
   /** Actual action entries for the row. */
   public Action under_term[];
 
-  /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
-
-  /** Default (reduce) action for this row.  -1 will represent default 
-   *  of error. 
-   */
-  public int default_reduce;
-
 }
 
