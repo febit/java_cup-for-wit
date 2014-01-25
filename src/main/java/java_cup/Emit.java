@@ -603,10 +603,7 @@ public class Emit {
      * @param act_tab the internal representation of the action table.
      * @param compact_reduces do we use the most frequent reduce as default?
      */
-    protected static void do_action_table(
-            PrintWriter out,
-            parse_action_table act_tab,
-            boolean compact_reduces)
+    protected static void do_action_table(PrintWriter out, parse_action_table act_tab)
             throws InternalException {
         parse_action_row row;
         Action act;
@@ -621,12 +618,7 @@ public class Emit {
             /* get the row */
             row = act_tab.under_state[i];
 
-            /* determine the default for the row */
-            if (compact_reduces) {
-                row.compute_default();
-            } else {
-                row.default_reduce = -1;
-            }
+            row.default_reduce = -1;
 
             /* make temporary table for the row. */
             short[] temp_table = new short[2 * parse_action_row.size()];
@@ -774,76 +766,6 @@ public class Emit {
         }
     }
 
-    // print a string array encoding the given short[][] array.
-    protected static void do_table_as_string(PrintWriter out, short[][] sa) {
-        //out.println("new String[] {");
-        out.print("\"");
-        int nchar = 0, nbytes = 0;
-        nbytes += do_escaped(out, (char) (sa.length >> 16));
-        nchar = do_newline(out, nchar, nbytes);
-        nbytes += do_escaped(out, (char) (sa.length & 0xFFFF));
-        nchar = do_newline(out, nchar, nbytes);
-        for (int i = 0; i < sa.length; i++) {
-            nbytes += do_escaped(out, (char) (sa[i].length >> 16));
-            nchar = do_newline(out, nchar, nbytes);
-            nbytes += do_escaped(out, (char) (sa[i].length & 0xFFFF));
-            nchar = do_newline(out, nchar, nbytes);
-            for (int j = 0; j < sa[i].length; j++) {
-                // contents of string are (value+2) to allow for common -1, 0 cases
-                // (UTF-8 encoding is most efficient for 0<c<0x80)
-                nbytes += do_escaped(out, (char) (2 + sa[i][j]));
-                nchar = do_newline(out, nchar, nbytes);
-            }
-        }
-        //out.print("\" }");
-        out.print("\"");
-    }
-
-    // split string if it is very long; start new line occasionally for neatness
-    protected static int do_newline(PrintWriter out, int nchar, int nbytes) {
-        if (nbytes > 65500) {
-            out.println("\", ");
-            out.print("    \"");
-        } else if (nchar > 11) {
-            out.println("\" +");
-            out.print("    \"");
-        } else {
-            return nchar + 1;
-        }
-        return 0;
-    }
-
-    // output an escape sequence for the given character code.
-    protected static int do_escaped(PrintWriter out, char c) {
-        StringBuffer escape = new StringBuffer();
-        if (c <= 0xFF) {
-            escape.append(Integer.toOctalString(c));
-            while (escape.length() < 3) {
-                escape.insert(0, '0');
-            }
-        } else {
-            escape.append(Integer.toHexString(c));
-            while (escape.length() < 4) {
-                escape.insert(0, '0');
-            }
-            escape.insert(0, 'u');
-        }
-        escape.insert(0, '\\');
-        out.print(escape.toString());
-
-        // return size of bytes this takes up in UTF-8 encoding.
-        if (c == 0) {
-            return 2;
-        }
-        if (c >= 0x01 && c <= 0x7F) {
-            return 1;
-        }
-        if (c >= 0x80 && c <= 0x7FF) {
-            return 2;
-        }
-        return 3;
-    }
-
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
      * Emit the parser subclass with embedded tables.
@@ -853,7 +775,6 @@ public class Emit {
      * @param reduce_table internal representation of the reduce-goto table.
      * @param start_st start state of the parse machine.
      * @param start_prod start Production of the grammar.
-     * @param compact_reduces do we use most frequent reduce as default?
      * @param suppress_scanner should scanner be suppressed for compatibility?
      */
     public static void parser(
@@ -862,7 +783,6 @@ public class Emit {
             parse_reduce_table reduce_table,
             int start_st,
             Production start_prod,
-            boolean compact_reduces,
             boolean suppress_scanner)
             throws InternalException {
         long start_time = System.currentTimeMillis();
@@ -920,7 +840,7 @@ public class Emit {
 //      out.println();
         emit_production_table(out);
 
-        do_action_table(out, action_table, compact_reduces);
+        do_action_table(out, action_table);
         do_reduce_table(out, reduce_table);
 
         /* method to tell the parser about the start state */

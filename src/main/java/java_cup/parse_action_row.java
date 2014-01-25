@@ -1,9 +1,7 @@
 
 package java_cup;
 
-import java_cup.ast.ReduceAction;
 import java_cup.ast.Terminal;
-import java_cup.ast.Production;
 import java_cup.ast.Action;
 
 /** This class represents one row (corresponding to one machine state) of the 
@@ -65,53 +63,6 @@ public class parse_action_row {
    *  of error. 
    */
   public int default_reduce;
-
-  /*-----------------------------------------------------------*/
-  /*--- General Methods ---------------------------------------*/
-  /*-----------------------------------------------------------*/
-	
-  /** Compute the default (reduce) action for this row and store it in 
-   *  default_reduce.  In the case of non-zero default we will have the 
-   *  effect of replacing all errors by that reduction.  This may cause 
-   *  us to do erroneous reduces, but will never cause us to shift past 
-   *  the point of the error and never cause an incorrect parse.  -1 will 
-   *  be used to encode the fact that no reduction can be used as a 
-   *  default (in which case error will be used).
-   */
-  public void compute_default()
-    {
-      int i, prod, max_prod, max_red;
-
-      /* if we haven't allocated the count table, do so now */
-      if (reduction_count == null) 
-	reduction_count = new int[Production.size()];
-
-      /* clear the reduction count table and maximums */
-      for (i = 0; i < Production.size(); i++)
-	reduction_count[i] = 0;
-      max_prod = -1;
-      max_red = 0;
-     
-      /* walk down the row and look at the reduces */
-      for (i = 0; i < size(); i++)
-	if (under_term[i].kind() == Action.REDUCE)
-	  {
-	    /* count the reduce in the proper Production slot and keep the 
-	       max up to date */
-	    prod = ((ReduceAction)under_term[i]).reduce_with().id();
-	    reduction_count[prod]++;
-	    if (reduction_count[prod] > max_red)
-	      {
-		max_red = reduction_count[prod];
-		max_prod = prod;
-	      }
-	  }
-
-       /* record the max as the default (or -1 for not found) */
-       default_reduce = max_prod;
-    }
-
-  /*-----------------------------------------------------------*/
 
 }
 

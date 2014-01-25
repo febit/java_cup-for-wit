@@ -436,8 +436,6 @@ public class Main {
                 } catch (NumberFormatException e) {
                     usage("-expect must be followed by a decimal integer");
                 }
-            } else if (argv[i].equals("-compact_red")) {
-                opt_compact_red = true;
             } else if (argv[i].equals("-nosummary")) {
                 no_summary = true;
             } else if (argv[i].equals("-nowarn")) {
@@ -735,8 +733,7 @@ public class Main {
     protected static void emit_parser() throws InternalException {
         Emit.symbols(symbol_class_file, include_non_terms, sym_interface);
         Emit.parser(parser_class_file, action_table, reduce_table,
-                start_state.index(), Emit.start_production, opt_compact_red,
-                suppress_scanner);
+                start_state.index(), Emit.start_production, suppress_scanner);
     }
 
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
