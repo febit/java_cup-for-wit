@@ -1,6 +1,5 @@
 package java_cup;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -16,23 +15,22 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Stack;
-import java.util.Enumeration;
 import java.util.Date;
 import java.util.Iterator;
 
 /**
  * This class handles emitting generated code for the resulting parser. The
- * various parse tables must be constructed, etc. before calling any routines in
- * this class.<p>
+ * various parse tables must be constructed, etc. before citeratoring any
+ * routines in this class.<p>
  *
  * Three classes are produced by this code:
  * <dl>
  * <dt> symbol constant class
- * <dd> this contains constant declarations for each Terminal (and optionally
- * each non-Terminal).
+ * <dd> this contains constant declarations for each Terminal (and
+ * optioniteratory each non-Terminal).
  * <dt> action class
- * <dd> this non-public class contains code to invoke all the user actions that
- * were embedded in the parser specification.
+ * <dd> this non-public class contains code to invoke iterator the user actions
+ * that were embedded in the parser specification.
  * <dt> parser class
  * <dd> the specialized parser class consisting primarily of some user supplied
  * general and initialization code, and the parse tables.
@@ -50,9 +48,9 @@ import java.util.Iterator;
  * <dd> when a reduce on a given Production is taken, the parse stack is popped
  * back a size of elements corresponding to the RHS of the Production. This
  * reveals a prior state, which we transition out of under the LHS non Terminal
- * symbol for the Production (as if we had seen the LHS symbol rather than all
- * the symbols matching the RHS). This table is indexed by non Terminal numbers
- * and indicates how to make these transitions.
+ * symbol for the Production (as if we had seen the LHS symbol rather than
+ * iterator the symbols matching the RHS). This table is indexed by non Terminal
+ * sizes and indicates how to make these transitions.
  * </dl><p>
  *
  * In addition to the method interface, this class maintains a series of public
@@ -168,13 +166,14 @@ public class Emit {
 
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
-     * User code for user_init() which is called during parser initialization.
+     * User code for user_init() which is citeratored during parser
+     * initialization.
      */
     public static String init_code = null;
 
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
-     * User code for scan() which is called to get the next Symbol.
+     * User code for scan() which is citeratored to get the next Symbol.
      */
     public static String scan_code = null;
 
@@ -267,7 +266,7 @@ public class Emit {
         _lr_values = b;
     }
 
-    //Hm Added clear  to clear all static fields
+    //Hm Added clear  to clear iterator static fields
     public static void clear() {
         _lr_values = true;
         action_code = null;
@@ -317,8 +316,8 @@ public class Emit {
 
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
-     * Emit code for the symbol constant class, optionally including non terms,
-     * if they have been requested.
+     * Emit code for the symbol constant class, optioniteratory including non
+     * terms, if they have been requested.
      *
      * @param out stream to produce output on.
      * @param emit_non_terms do we Emit constants for non terminals?
@@ -348,9 +347,8 @@ public class Emit {
         out.println("    /* terminals */");
 
         /* walk over the terminals */              /* later might sort these */
-        for (Enumeration e = Terminal.all(); e.hasMoreElements();) {
-            term = (Terminal) e.nextElement();
-
+        for (Iterator<Terminal> it = Terminal.iterator(); it.hasNext();) {
+            term = it.next();
             /* output a constant decl for the Terminal */
             out.println("    public static final int " + term.name() + " = "
                     + term.id() + ";");
@@ -419,8 +417,8 @@ public class Emit {
 
             /* if this was the start Production, do action for accept */
             if (prod == start_prod) {
-                buffer.append("\t\t/* ACCEPT */\n");
-                buffer.append("\t\tthis.goonParse = false;\n");
+                buffer.append("                /* ACCEPT */\n");
+                buffer.append("                this.goonParse = false;\n");
             }
 
             /**
@@ -430,7 +428,7 @@ public class Emit {
             if (prod instanceof ActionProduction) {
                 int lastResult = ((ActionProduction) prod).getIndexOfIntermediateResult();
                 if (lastResult != -1) {
-                    buffer.append("\t\treturn (" + prod.lhs().the_symbol().stack_type() + ") myStack.peek(" + (lastResult - 1) + ").value;\n");
+                    buffer.append("                return (" + prod.lhs().the_symbol().stack_type() + ") myStack.peek(" + (lastResult - 1) + ").value;\n");
                 }
             }
 
@@ -456,7 +454,7 @@ public class Emit {
                 // OK, it fits.  Make a conditional assignment to RESULT.
                 int offset = prod.rhs_length() - i - 1; // last rhs is on top.
                 // set comment to inform about where the intermediate result came from
-                buffer.append("\t\t" + "// propagate RESULT from " + s.name());
+                buffer.append("                " + "// propagate RESULT from " + s.name());
                 buffer.append('\n');
 //            // look out, whether the intermediate result is null or not
 //	    buffer.append("              " + "if ( " +
@@ -467,7 +465,7 @@ public class Emit {
 
 // TUM 20060608: even when its null: who cares?
                 // store the intermediate result into RESULT
-                buffer.append("\t\treturn (" + prod.lhs().the_symbol().stack_type() + ") myStack.peek(" + offset + ").value;\n");
+                buffer.append("                return (" + prod.lhs().the_symbol().stack_type() + ") myStack.peek(" + offset + ").value;\n");
                 break;
             }
 
@@ -521,7 +519,7 @@ public class Emit {
         //out.println("      " + runtime_pkg_name + ".Symbol " + pre("result") + ";");
         //out.println("      /* SymbolFactory object for create Symbol object */");
         //out.println("      " + runtime_pkg_name + ".SymbolFactory " + pre("SymbolFactory") + " = parser.getSymbolFactory();");
-        out.println("      Stack<Symbol> myStack = this._stack;");
+        out.println("        Stack<Symbol> myStack = this._stack;");
 //        out.println("      //RESULT_DEBUG: /*");
 //        out.println("      Object RESULT;");
 //        out.println("      //RESULT_DEBUG: */");
@@ -529,8 +527,8 @@ public class Emit {
         out.println();
 
         /* switch top */
-        out.println("      /* select the action based on the action number */");
-        out.println("      switch (actionId){");
+        out.println("        /* select the action based on the action number */");
+        out.println("        switch (actionId){");
 
         ArrayList<ProductionCodeWrap> codeWraps = resolveProductionCodeWraps(start_prod);
         ProductionCodeWrap codeWrap;
@@ -538,22 +536,20 @@ public class Emit {
             codeWrap = codeWraps.get(i);
 
             /* case label */
-            out.println("\tcase " + codeWrap.id + ": // " + codeWrap.remark);
+            out.println("            case " + codeWrap.id + ": // " + codeWrap.remark);
             if (codeWrap.useNext == false) {
                 /* give them their own block to work in */
-                out.println("\t{");
+                out.println("            {");
                 out.println(codeWrap.caseBody);
-                out.println("\t}");
-                out.println();
+                out.println("            }");
             }
 
         }
 
         /* end of switch */
-        out.println("\tdefault:");
-        out.println("\t\tthrow new ParseException(\"Invalid action number found in internal parse table\");");
-        out.println();
-        out.println("      }");
+        out.println("            default:");
+        out.println("                throw new ParseException(\"Invalid action number found in internal parse table\");");
+        out.println("        }");
 
         action_code_time = System.currentTimeMillis() - start_time;
     }
@@ -577,9 +573,7 @@ public class Emit {
             prod_table[i][1] = (short) prod.rhs_length();
         }
         /* do the top of the table */
-        out.println();
-        out.println("  /** Production table. */");
-        out.println("  static final short PRODUCTION_TABLE[][] = loadFromDataFile(\"Production\");");
+        out.println("    static final short[][] PRODUCTION_TABLE = loadFromDataFile(\"Production\");");
 //        out.print("    unpackFromStrings(");
 //        do_table_as_string(out, prod_table);
 //        out.println(");");
@@ -595,6 +589,8 @@ public class Emit {
     }
 
     public final static int DEFAULT_REDUCE = -1;
+
+    final static short[] EMPTY_SHORT_ARRAY = new short[0];
 
     /**
      * Emit the action table.
@@ -612,12 +608,14 @@ public class Emit {
         long start_time = System.currentTimeMillis();
 
         /* collect values for the action table */
-        short[][] action_table = new short[act_tab.num_states()][];
-        /* make temporary table for the row. */
-        short[] temp_table = new short[2 * parse_action_row.size()];
+        final int size_i = act_tab.num_states();
+
+        final int size_j = parse_action_row.size();
+        final short[][] action_table = new short[size_i][];
+        final short[] temp_table = new short[2 * size_j];
 
         /* do each state (row) of the action table */
-        for (int i = 0; i < act_tab.num_states(); i++) {
+        for (int i = 0; i < size_i; i++) {
             /* get the row */
             Action[] row_under_term = (row = act_tab.under_state[i]).under_term;
             int nentries = 0;
@@ -626,7 +624,7 @@ public class Emit {
                 act = row_under_term[j];
                 switch (act.kind()) {
                     case Action.ERROR:
-                        // skip error entries these are all defaulted out
+                        // skip error entries these are iterator defaulted out
                         break;
                     case Action.SHIFT:
                         // shifts get positive entries of state size + 1
@@ -648,14 +646,16 @@ public class Emit {
                                 + act.kind() + " found in parse table");
                 }
             }
-            
-            System.arraycopy(temp_table, 0, action_table[i] = new short[nentries], 0, nentries);
+
+            if (nentries != 0) {
+                System.arraycopy(temp_table, 0, action_table[i] = new short[nentries], 0, nentries);
+            } else {
+                action_table[i] = EMPTY_SHORT_ARRAY;
+            }
         }
 
         /* finish off the init of the table */
-        out.println();
-        out.println("  /** Parse-action table. */");
-        out.println("  static final short[][] ACTION_TABLE = loadFromDataFile(\"Action\");");
+        out.println("    static final short[][] ACTION_TABLE = loadFromDataFile(\"Action\");");
 //        out.print("    unpackFromStrings(");
 //        do_table_as_string(out, action_table);
 //        out.println(");");
@@ -683,19 +683,18 @@ public class Emit {
         Action act;
 
         long start_time = System.currentTimeMillis();
-
-        /* collect values for reduce-goto table */
-        short[][] reduce_goto_table = new short[red_tab.num_states()][];
+        final int size_i = red_tab.num_states();
+        final int size_j = parse_reduce_row.size();
+        final short[] temp_table = new short[2 * size_j];
+        final short[][] reduce_goto_table = new short[size_i][];
         /* do each row of the reduce-goto table */
-        for (int i = 0; i < red_tab.num_states(); i++) {
-            /* make temporary table for the row. */
-            short[] temp_table = new short[2 * parse_reduce_row.size()];
+        for (int i = 0; i < size_i; i++) {
             int nentries = 0;
+            lalr_state[] under_non_term = red_tab.under_state[i].under_non_term;
             /* do each entry in the row */
-            for (int j = 0; j < parse_reduce_row.size(); j++) {
+            for (int j = 0; j < size_j; j++) {
                 /* get the entry */
-                goto_st = red_tab.under_state[i].under_non_term[j];
-
+                goto_st = under_non_term[j];
                 /* if we have none, skip it */
                 if (goto_st != null) {
                     /* make entries for the id and the value */
@@ -703,19 +702,16 @@ public class Emit {
                     temp_table[nentries++] = (short) goto_st.index();
                 }
             }
-            /* now we know how big to make the row. */
-            reduce_goto_table[i] = new short[nentries + 2];
-            System.arraycopy(temp_table, 0, reduce_goto_table[i], 0, nentries);
 
-            /* end row with default value */
-            reduce_goto_table[i][nentries++] = -1;
-            reduce_goto_table[i][nentries++] = -1;
+            if (nentries != 0) {
+                System.arraycopy(temp_table, 0, reduce_goto_table[i] = new short[nentries], 0, nentries);
+            } else {
+                reduce_goto_table[i] = null; //EMPTY_SHORT_ARRAY;
+            }
         }
 
         /* Emit the table. */
-        out.println();
-        out.println("  /** <code>reduce_goto</code> table. */");
-        out.println("  static final short[][] REDUCE_TABLE = loadFromDataFile(\"Reduce\");");
+        out.println("    static final short[][] REDUCE_TABLE = loadFromDataFile(\"Reduce\");");
 //        out.print("    unpackFromStrings(");
 //        do_table_as_string(out, reduce_goto_table);
 //        out.println(");");
@@ -793,12 +789,8 @@ public class Emit {
         out.println(" */");
         /* TUM changes; proposed by Henning Niss 20050628: added typeArgument */
         out.println("public class " + parser_class_name + typeArgument()
-                + " extends lr_parser {");
+                + " extends AbstractParser {");
 
-        /* constructors [CSA/davidm, 24-jul-99] */
-        out.println();
-
-        /* Emit the various tables */
         out.println();
 
 //      out.println("  private static final String[] _nonTerminalNames = new String[]{"); 
@@ -827,9 +819,7 @@ public class Emit {
         do_action_table(out, action_table);
         do_reduce_table(out, reduce_table);
 
-        /* method to tell the parser about the start state */
-        out.println("  /** Indicates start state. */");
-        out.println("  final static int START_STATE = " + start_st + ";");
+        assert start_st==0;
 //
 //      /* method to indicate start Production */
 //      out.println("  /** Indicates start production. */");
@@ -847,14 +837,13 @@ public class Emit {
 
         /* user supplied code */
         if (parser_code != null) {
-            out.println();
             out.println(parser_code);
         }
 
         /* access to action code */
-        out.println("  final Object do_action(int actionId) throws ParseException {");
+        out.println("    final Object doAction(int actionId) throws ParseException {");
         emit_action_code(out, start_prod);
-        out.println("  }");
+        out.println("    }");
         out.println();
 
         /* end of class */

@@ -19,7 +19,7 @@ public class parse_action_row {
   public parse_action_row()
     {
       /* make sure the size is set */
-      if (_size <= 0 )  _size = Terminal.number();
+      if (_size <= 0 )  _size = Terminal.size();
 
       /* allocate the array */
       under_term = new Action[size()];
@@ -39,7 +39,7 @@ public class parse_action_row {
   /** Number of columns (terminals) in every row. */
   public static int size() {return _size;}
 
-  //Hm Added clear  to clear all static fields
+  //Hm Added clear  to clear iterator static fields
   public static void clear() {
       _size = 0;
       reduction_count = null;

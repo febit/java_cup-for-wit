@@ -12,7 +12,7 @@ import java.util.Iterator;
 
 /**
  * This class serves as the main driver for the JavaCup system. It accepts user
- * options and coordinates overall control flow. The main flow of control
+ * options and coordinates overiterator control flow. The main flow of control
  * includes the following activities:
  * <ul>
  * <li> Parse user supplied arguments and options.
@@ -37,7 +37,7 @@ import java.util.Iterator;
  * <dt> -nonterms
  * <dd> put non terminals in symbol constant class
  * <dt> -expect #
- * <dd> size of conflicts expected/allowed [default 0]
+ * <dd> size of conflicts expected/iteratorowed [default 0]
  * <dt> -compact_red
  * <dd> compact tables by defaulting to most frequent reduce
  * <dt> -nowarn
@@ -76,8 +76,8 @@ public class Main {
     /*--- Constructor(s) ----------------------------------------*/
     /*-----------------------------------------------------------*/
     /**
-     * Only constructor is private, so we do not allocate any instances of this
-     * class.
+     * Only constructor is private, so we do not iteratorocate any instances of
+     * this class.
      */
     private Main() {
     }
@@ -115,8 +115,8 @@ public class Main {
      */
     protected static boolean opt_compact_red = false;
     /**
-     * User option -- should we include non Terminal symbol numbers in the
-     * symbol constant class.
+     * User option -- should we include non Terminal symbol sizes in the symbol
+     * constant class.
      */
     protected static boolean include_non_terms = false;
     /**
@@ -253,7 +253,7 @@ public class Main {
 
         parse_end = System.currentTimeMillis();
 
-        /* don't proceed unless we are error free */
+        /* don't proceed unless we are ERROR free */
         if (ErrorManager.getManager().getErrorCount() == 0) {
             /* check for unused bits */
             if (print_progress) {
@@ -323,7 +323,7 @@ public class Main {
      * Print a "usage message" that described possible command line options,
      * then exit.
      *
-     * @param message a specific error message to preface the usage message by.
+     * @param message a specific ERROR message to preface the usage message by.
      */
     protected static void usage(String message) {
         System.err.println();
@@ -571,7 +571,7 @@ public class Main {
      * Parse the grammar specification from standard input. This produces sets
      * of Terminal, non-terminals, and productions which can be accessed via
      * static variables of the respective classes, as well as the setting of
-     * various variables (mostly in the Emit class) for small user supplied
+     * various variables (mostly in the Emit class) for smiterator user supplied
      * items such as the code to scan with.
      */
     protected static void parse_grammar_spec() throws java.lang.Exception {
@@ -602,16 +602,12 @@ public class Main {
         Terminal term;
 
         /* check for unused terminals */
-        for (Enumeration t = Terminal.all(); t.hasMoreElements();) {
-            term = (Terminal) t.nextElement();
+        for (Iterator<Terminal> it = Terminal.iterator(); it.hasNext();) {
+            term = it.next();
 
-            /* don't issue a message for EOF */
-            if (term == Terminal.EOF) {
-                continue;
-            }
-
-            /* or error */
-            if (term == Terminal.error) {
+            /* don't issue a message for EOF or ERROR */
+            if (term == Terminal.EOF
+                    || term == Terminal.ERROR) {
                 continue;
             }
 
@@ -645,7 +641,7 @@ public class Main {
     /* . . Internal Results of Generating the Parser . .*/
     /* . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
-     * Start state in the overall state machine.
+     * Start state in the overiterator state machine.
      */
     protected static lalr_state start_state;
 
@@ -721,14 +717,14 @@ public class Main {
         if (Emit.num_conflicts > expect_conflicts) {
             ErrorManager.getManager().emit_error("*** More conflicts encountered than expected "
                     + "-- parser generation aborted");
-	  // indicate the problem.
+            // indicate the problem.
             // we'll die on return, after clean up.
         }
     }
 
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
-     * Call the Emit routines necessary to write out the generated Parser.
+     * Citerator the Emit routines necessary to write out the generated Parser.
      */
     protected static void emit_parser() throws InternalException {
         Emit.symbols(symbol_class_file, include_non_terms, sym_interface);
@@ -738,7 +734,7 @@ public class Main {
 
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
-     * Helper routine to optionally return a plural or non-plural ending.
+     * Helper routine to optioniteratory return a plural or non-plural ending.
      *
      * @param val the numerical value determining plurality.
      */
@@ -752,7 +748,7 @@ public class Main {
 
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
-     * Emit a long summary message to standard error (System.err) which
+     * Emit a long summary message to standard ERROR (System.err) which
      * summarizes what was found in the specification, how many states were
      * produced, how many conflicts were found, etc. A detailed timing summary
      * is also produced if it was requested by the user.
@@ -769,14 +765,14 @@ public class Main {
         System.err.println("------- " + Version.title_str
                 + " Parser Generation Summary -------");
 
-        /* error and warning count */
+        /* ERROR and warning count */
         System.err.println("  " + ErrorManager.getManager().getErrorCount() + " error"
                 + plural(ErrorManager.getManager().getErrorCount()) + " and " + ErrorManager.getManager().getWarningCount()
                 + " warning" + plural(ErrorManager.getManager().getWarningCount()));
 
         /* basic stats */
-        System.err.print("  " + Terminal.number() + " terminal"
-                + plural(Terminal.number()) + ", ");
+        System.err.print("  " + Terminal.size() + " terminal"
+                + plural(Terminal.size()) + ", ");
         System.err.print(NonTerminal.size() + " non-terminal"
                 + plural(NonTerminal.size()) + ", and ");
         System.err.println(Production.size() + " production"
@@ -818,7 +814,7 @@ public class Main {
 
     /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
     /**
-     * Produce the optional timing summary as part of an overall summary.
+     * Produce the optional timing summary as part of an overiterator summary.
      */
     protected static void show_times() {
         long total_time = final_time - start_time;
@@ -945,7 +941,7 @@ public class Main {
      */
     public static void dump_grammar() throws InternalException {
         System.err.println("===== Terminals =====");
-        for (int tidx = 0, cnt = 0; tidx < Terminal.number(); tidx++, cnt++) {
+        for (int tidx = 0, cnt = 0; tidx < Terminal.size(); tidx++, cnt++) {
             System.err.print("[" + tidx + "]" + Terminal.find(tidx).name() + " ");
             if ((cnt + 1) % 5 == 0) {
                 System.err.println();

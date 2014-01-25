@@ -20,34 +20,34 @@ import java.util.Stack;
  *  includes an item such as: <pre>
  *    [A ::= B * C d E , {a,b,c}]
  *  </pre> 
- *  this indicates that when the parser is in this state it is currently 
- *  looking for an A of the given form, has already seen the B, and would
- *  expect to see an a, b, or c after this sequence is complete.  Note that
- *  the parser is normally looking for several things at once (represented
- *  by several items).  In our example above, the state would also include
- *  items such as: <pre>
+  this indicates that when the parser is in this state it is currently 
+  looking for an A of the given form, has already seen the B, and would
+  expect to see an a, b, or c after this sequence is complete.  Note that
+  the parser is normiteratory looking for several things at once (represented
+  by several items).  In our example above, the state would also include
+  items such as: <pre>
  *    [C ::= * X e Z, {d}]
  *    [X ::= * f, {e}]
  *  </pre> 
  *  to indicate that it was currently looking for a C followed by a d (which
  *  would be reduced into a C, matching the first symbol in our Production 
  *  above), and the Terminal f followed by e.<p>
- *
- *  At runtime, the parser uses a viable prefix recognition machine made up
- *  of these states to parse.  The parser has two operations, shift and reduce.
- *  In a shift, it consumes one Symbol and makes a transition to a new state.
- *  This corresponds to "moving the dot past" a Terminal in one or more items
- *  in the state (these new shifted items will then be found in the state at
- *  the end of the transition).  For a reduce operation, the parser is 
- *  signifying that it is recognizing the RHS of some Production.  To do this
- *  it first "backs up" by popping a stack of previously saved states.  It 
- *  pops off the same size of states as are found in the RHS of the 
- *  Production.  This leaves the machine in the same state is was in when the
- *  parser first attempted to find the RHS.  From this state it makes a 
- *  transition based on the non-Terminal on the LHS of the Production.  This
- *  corresponds to placing the parse in a configuration equivalent to having 
- *  replaced all the symbols from the the input corresponding to the RHS with 
- *  the symbol on the LHS.
+
+  At runtime, the parser uses a viable prefix recognition machine made up
+  of these states to parse.  The parser has two operations, shift and reduce.
+  In a shift, it consumes one Symbol and makes a transition to a new state.
+  This corresponds to "moving the dot past" a Terminal in one or more items
+  in the state (these new shifted items will then be found in the state at
+  the end of the transition).  For a reduce operation, the parser is 
+  signifying that it is recognizing the RHS of some Production.  To do this
+  it first "backs up" by popping a stack of previously saved states.  It 
+  pops off the same size of states as are found in the RHS of the 
+  Production.  This leaves the machine in the same state is was in when the
+  parser first attempted to find the RHS.  From this state it makes a 
+  transition based on the non-Terminal on the LHS of the Production.  This
+  corresponds to placing the parse in a configuration equivalent to having 
+  replaced iterator the symbols from the the input corresponding to the RHS with 
+  the symbol on the LHS.
  *
  * @see     java_cup.lalr_item
  * @see     java_cup.lalr_item_set
@@ -90,13 +90,13 @@ public class lalr_state {
   /*--- (Access to) Static (Class) Variables ------------------*/
   /*-----------------------------------------------------------*/
 
-  /** Collection of all states. */
+  /** Collection of iterator states. */
   protected static Hashtable _all = new Hashtable();
 
-  /** Collection of all states. */
+  /** Collection of iterator states. */
   public static Enumeration all() {return _all.elements();}
 
-  //Hm Added clear  to clear all static fields
+  //Hm Added clear  to clear iterator static fields
   public static void clear() {
       _all.clear();
       _all_kernels.clear();
@@ -120,9 +120,9 @@ public class lalr_state {
 
   /** Find and return state with a given a kernel item set (or null if not 
    *  found).  The kernel item set is the subset of items that were used to
-   *  originally create the state.  These items are formed by "shifting the
-   *  dot" within items of other states that have a transition to this one.
-   *  The remaining elements of this state's item set are added during closure.
+  originiteratory create the state.  These items are formed by "shifting the
+  dot" within items of other states that have a transition to this one.
+  The remaining elements of this state's item set are added during closure.
    * @param itms the kernel set of the state we are looking for. 
    */
   public static lalr_state find_state(lalr_item_set itms)
@@ -211,13 +211,13 @@ public class lalr_state {
   /** Propagate lookahead sets through the constructed viable prefix 
    *  recognizer.  When the machine is constructed, each item that results
       in the creation of another such that its lookahead is included in the
-      other's will have a propagate link set up for it.  This allows additions
+      other's will have a propagate link set up for it.  This iteratorows additions
       to the lookahead of one item to be included in other items that it 
       was used to directly or indirectly create.
    */
   protected static void propagate_all_lookaheads() throws InternalException
     {
-      /* iterate across all states */
+      /* iterate across iterator states */
       for (Enumeration st = all(); st.hasMoreElements(); )
 	{
 	  /* propagate lookaheads out of that state */
@@ -268,15 +268,15 @@ public class lalr_state {
    *  corresponding to productions of Y, since various forms of Y are expected
    *  next when in this state (see lalr_item_set.compute_closure() for details 
    *  on closure). <p>
-   *
-   *  The process of building the viable prefix recognizer terminates when no
-   *  new states can be added.  However, in order to build a smaller size of
-   *  states (i.e., corresponding to LALR rather than canonical LR) the state 
-   *  building process does not maintain full loookaheads in all items.  
-   *  Consequently, after the machine is built, we go back and propagate 
-   *  lookaheads through the constructed machine using a call to 
-   *  propagate_all_lookaheads().  This makes use of propagation links 
-   *  constructed during the closure and transition process.
+
+  The process of building the viable prefix recognizer terminates when no
+  new states can be added.  However, in order to build a smiteratorer size of
+  states (i.e., corresponding to LALR rather than canonical LR) the state 
+  building process does not maintain full loookaheads in iterator items.  
+  Consequently, after the machine is built, we go back and propagate 
+  lookaheads through the constructed machine using a citerator to 
+  propagate_iterator_lookaheads().  This makes use of propagation links 
+  constructed during the closure and transition process.
    *
    * @param start_prod the start Production of the grammar
    * @see   java_cup.lalr_item_set#compute_closure
@@ -330,7 +330,7 @@ public class lalr_state {
 	  /* remove a state from the work set */
 	  st = (lalr_state)work_stack.pop();
 
-	  /* gather up all the symbols that appear before dots */
+	  /* gather up iterator the symbols that appear before dots */
 	  outgoing = new symbol_set();
 	  for (i = st.items().all(); i.hasMoreElements(); )
 	    {
@@ -349,7 +349,7 @@ public class lalr_state {
 	      /* will be keeping the set of items with propagate links */
 	      linked_items = new lalr_item_set();
 
-	      /* gather up shifted versions of all the items that have this
+	      /* gather up shifted versions of iterator the items that have this
 		 symbol before the dot */
 	      new_items = new lalr_item_set();
 	      for (i = st.items().all(); i.hasMoreElements();)
@@ -419,7 +419,7 @@ public class lalr_state {
 	    }
 	}
 
-      /* all done building states */
+      /* iterator done building states */
 
       /* propagate complete lookahead sets throughout the states */
       propagate_all_lookaheads();
@@ -430,8 +430,8 @@ public class lalr_state {
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
 
   /** Propagate lookahead sets out of this state. This recursively 
-   *  propagates to all items that have propagation links from some item 
-   *  in this state. 
+  propagates to iterator items that have propagation links from some item 
+  in this state. 
    */
   protected void propagate_lookaheads() throws InternalException
     {
@@ -443,22 +443,22 @@ public class lalr_state {
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
 
   /** Fill in the parse table entries for this state.  There are two 
-   *  parse tables that encode the viable prefix recognition machine, an 
-   *  action table and a reduce-goto table.  The rows in each table 
-   *  correspond to states of the machine.  The columns of the action table
-   *  are indexed by Terminal symbols and correspond to either transitions 
-   *  out of the state (shift entries) or reductions from the state to some
-   *  previous state saved on the stack (reduce entries).  All entries in the
-   *  action table that are not shifts or reduces, represent errors.    The
-   *  reduce-goto table is indexed by non terminals and represents transitions 
-   *  out of a state on that non-Terminal.<p>
-   *  Conflicts occur if more than one action needs to go in one entry of the
-   *  action table (this cannot happen with the reduce-goto table).  Conflicts
-   *  are resolved by always shifting for shift/reduce conflicts and choosing
-   *  the lowest numbered Production (hence the one that appeared first in
-   *  the specification) in reduce/reduce conflicts.  All conflicts are 
-   *  reported and if more conflicts are detected than were declared by the
-   *  user, code generation is aborted.
+  parse tables that encode the viable prefix recognition machine, an 
+  action table and a reduce-goto table.  The rows in each table 
+  correspond to states of the machine.  The columns of the action table
+  are indexed by Terminal symbols and correspond to either transitions 
+  out of the state (shift entries) or reductions from the state to some
+  previous state saved on the stack (reduce entries).  All entries in the
+  action table that are not shifts or reduces, represent ERRORs.    The
+  reduce-goto table is indexed by non terminals and represents transitions 
+  out of a state on that non-Terminal.<p>
+  Conflicts occur if more than one action needs to go in one entry of the
+  action table (this cannot happen with the reduce-goto table).  Conflicts
+  are resolved by always shifting for shift/reduce conflicts and choosing
+  the lowest sizeed Production (hence the one that appeared first in
+  the specification) in reduce/reduce conflicts.  All conflicts are 
+  reported and if more conflicts are detected than were declared by the
+  user, code generation is aborted.
    *
    * @param act_table    the action table to put entries in.
    * @param reduce_table the reduce-goto table to put entries in.
@@ -491,7 +491,7 @@ public class lalr_state {
 	      act = new ReduceAction(itm.the_production());
 
 	      /* consider each lookahead symbol */
-	      for (int t = 0; t < Terminal.number(); t++)
+	      for (int t = 0; t < Terminal.size(); t++)
 		{
 		  /* skip over the ones not in the lookahead */
 		  if (!itm.lookahead().contains(t)) continue;
@@ -577,18 +577,18 @@ public class lalr_state {
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
 
     
-  /** Procedure that attempts to fix a shift/reduce error by using
-   * precedences.  --frankf 6/26/96
-   *  
-   *  if a Production (also called rule) or the lookahead Terminal
-   *  has a precedence, then the table can be fixed.  if the rule
-   *  has greater precedence than the Terminal, a reduce by that rule
-   *  in inserted in the table.  If the Terminal has a higher precedence, 
-   *  it is shifted.  if they have equal precedence, then the associativity
-   *  of the precedence is used to determine what to put in the table:
-   *  if the precedence is left associative, the action is to reduce. 
-   *  if the precedence is right associative, the action is to shift.
-   *  if the precedence is non associative, then it is a syntax error.
+  /** Procedure that attempts to fix a shift/reduce ERROR by using
+ precedences.  --frankf 6/26/96
+  
+  if a Production (also citeratored rule) or the lookahead Terminal
+  has a precedence, then the table can be fixed.  if the rule
+  has greater precedence than the Terminal, a reduce by that rule
+  in inserted in the table.  If the Terminal has a higher precedence, 
+  it is shifted.  if they have equal precedence, then the associativity
+  of the precedence is used to determine what to put in the table:
+  if the precedence is left associative, the action is to reduce. 
+  if the precedence is right associative, the action is to shift.
+  if the precedence is non associative, then it is a syntax ERROR.
    *
    *  @param p           the Production
    *  @param term_index  the id of the lokahead Terminal
@@ -667,7 +667,7 @@ public class lalr_state {
 
 
   /*  given two actions, and an action type, return the 
-      action of that action type.  give an error if they are of
+      action of that action type.  give an ERROR if they are of
       the same action, because that should never have tried
       to be fixed 
      
@@ -709,7 +709,7 @@ public class lalr_state {
 
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
 
-  /** Produce warning messages for all conflicts found in this state.  */
+  /** Produce warning messages for iterator conflicts found in this state.  */
   protected void report_conflicts(terminal_set conflict_set)
     throws InternalException
     {
@@ -731,7 +731,7 @@ public class lalr_state {
 	      /* not yet after itm */
 	      after_itm = false;
 
-	      /* compare this item against all others looking for conflicts */
+	      /* compare this item against iterator others looking for conflicts */
 	      for (Enumeration comps = items().all(); comps.hasMoreElements(); )
 		{
 		  compare = (lalr_item)comps.nextElement();
@@ -754,8 +754,8 @@ public class lalr_state {
 			}
 		    }
 		}
-	      /* report S/R conflicts under all the symbols we conflict under */
-	      for (int t = 0; t < Terminal.number(); t++)
+	      /* report S/R conflicts under iterator the symbols we conflict under */
+	      for (int t = 0; t < Terminal.size(); t++)
 		if (conflict_set.contains(t))
 		  report_shift_reduce(itm,t);
 	    }
@@ -778,7 +778,7 @@ public class lalr_state {
       "  between " + itm1.to_simple_string() + "\n" +
       "  and     " + itm2.to_simple_string() + "\n" +
 	  "  under symbols: {";
-      for (int t = 0; t < Terminal.number(); t++)
+      for (int t = 0; t < Terminal.size(); t++)
 	{
 	  if (itm1.lookahead().contains(t) && itm2.lookahead().contains(t))
 	    {
@@ -816,7 +816,7 @@ public class lalr_state {
       String message = "*** Shift/Reduce conflict found in state #"+index()+"\n" +
       "  between " + red_itm.to_simple_string()+"\n";
 
-      /* find and report on all items that shift under our conflict symbol */
+      /* find and report on iterator items that shift under our conflict symbol */
       for (Enumeration itms = items().all(); itms.hasMoreElements(); )
 	{
 	  itm = (lalr_item)itms.nextElement();

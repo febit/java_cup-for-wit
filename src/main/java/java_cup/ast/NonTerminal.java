@@ -73,21 +73,10 @@ public class NonTerminal extends symbol {
   public static void clear() {
       _all.clear();
       _all_by_index.clear();
-      next_index=0;
       next_nt=0;
   }
 
-  /** Access to iterator non-terminals. */
-  public static Iterator iterator() {return _all_by_index.iterator();}
-
-  /** lookup a non terminal by name string */ 
-  public static NonTerminal find(String with_name)
-    {
-      if (with_name == null)
-        return null;
-      else 
-        return (NonTerminal)_all.get(with_name);
-    }
+  public static Iterator<NonTerminal> iterator() {return _all_by_index.iterator();}
 
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
 

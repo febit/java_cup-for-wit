@@ -22,12 +22,12 @@ import java.util.Enumeration;
  *  that B has already been parsed, and that we will expect to see a lookahead 
  *  of either a, b, or c once the complete RHS of this Production has been 
  *  found.<p>
- *
- *  Items may initially be missing some items from their lookahead sets.  
- *  Links are maintained from each item to the set of items that would need 
- *  to be updated if symbols are added to its lookahead set.  During 
- *  "lookahead propagation", we add symbols to various lookahead sets and 
- *  propagate these changes across these dependency links as needed. 
+
+  Items may initiiteratory be missing some items from their lookahead sets.  
+  Links are maintained from each item to the set of items that would need 
+  to be updated if symbols are added to its lookahead set.  During 
+  "lookahead propagation", we add symbols to various lookahead sets and 
+  propagate these changes across these dependency links as needed. 
  *  
  * @see     java_cup.lalr_item_set
  * @see     java_cup.lalr_state
@@ -313,7 +313,7 @@ public class lalr_item extends lr_item_core {
       if (lookahead() != null)
 	{
 	  result += "{";
-	  for (int t = 0; t < Terminal.number(); t++)
+	  for (int t = 0; t < Terminal.size(); t++)
 	    if (lookahead().contains(t))
 	      result += Terminal.find(t).name() + " ";
 	  result += "}";

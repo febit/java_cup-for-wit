@@ -36,19 +36,19 @@ public class Production {
     /*-----------------------------------------------------------*/
     /**
      * Full constructor. This constructor accepts a LHS non Terminal, an array
-     * of RHS parts (including terminals, non terminals, and actions), and a
-     * string for a final reduce action. It does several manipulations in the
-     * process of creating a Production object. After some validity checking it
-     * translates labels that appear in actions into code for accessing objects
-     * on the runtime parse stack. It them merges adjacent actions if they
-     * appear and moves any trailing action into the final reduce actions
-     * string. Next it removes any embedded actions by factoring them out with
-     * new action productions. Finally it assigns a unique id to the
-     * Production.<p>
-     *
-     * Factoring out of actions is accomplished by creating new "hidden" non
-     * terminals. For example if the Production was originally:
-     * <pre>
+ of RHS parts (including terminals, non terminals, and actions), and a
+ string for a final reduce action. It does several manipulations in the
+ process of creating a Production object. After some validity checking it
+ translates labels that appear in actions into code for accessing objects
+ on the runtime parse stack. It them merges adjacent actions if they
+ appear and moves any trailing action into the final reduce actions
+ string. Next it removes any embedded actions by factoring them out with
+ new action productions. Finiteratory it assigns a unique id to the
+ Production.<p>
+
+ Factoring out of actions is accomplished by creating new "hidden" non
+ terminals. For example if the Production was originiteratory:
+ <pre>
      *    A ::= B {action} C D
      * </pre> then it is factored into two productions:
      * <pre>
@@ -148,7 +148,7 @@ public class Production {
             action_str = "";
         }
         if (tail_action != null && tail_action.code_string() != null) {
-            action_str = action_str + "\t\t" + tail_action.code_string();
+            action_str = action_str + "                " + tail_action.code_string().trim();
         }
         action_str = declare_labels(
                 rhs_parts, rightlen, action_str);
@@ -464,7 +464,6 @@ public class Production {
             int rhs_len,
             String final_action) {
         if (final_action == null
-                || final_action.isEmpty()
                 || final_action.indexOf('%') < 0
                 || rhs_len == 0) {
             return final_action;
@@ -499,7 +498,7 @@ public class Production {
                                 || final_action.indexOf(repalce_column) >= 0;
                     }
                     if (count_value) {
-                        declaration.append("\t\tSymbol " + labelname + "$Symbol = myStack.peek(" + offset + ");\n");
+                        declaration.append("                Symbol " + labelname + "$Symbol = myStack.peek(" + offset + ");\n");
                         //declaration.append("\t\t" + stack_type + " " + labelname + " = (" + stack_type + ") " + labelname + "$Symbol.value;\n");
                         final_action = StringUtil.replace(final_action, new String[]{
                             repalce_value, repalce_line, repalce_column

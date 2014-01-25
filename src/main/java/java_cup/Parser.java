@@ -294,7 +294,7 @@ public class Parser extends java_cup.runtime.lr_parser {
   /** Access to parse-action table. */
   protected short[][] action_table() {return _action_table;}
 
-  /** <code>reduce_goto</code> table. */
+  /** *  <code>reduce_goto</code> table. */
   private static final short[][] _reduce_table = 
     unpackFromStrings(new String[] {
     "\000\264\000\006\002\003\057\005\001\001\000\002\001" +
@@ -399,10 +399,10 @@ public class Parser extends java_cup.runtime.lr_parser {
   /** Indicates start production. */
   protected int start_production() {return 0;}
 
-  /** <code>EOF</code> Symbol index. */
+  /** *  <code>EOF</code> Symbol index. */
   protected int EOF_sym() {return 0;}
 
-  /** <code>error</code> Symbol index. */
+  /** *  <code>ERROR</code> Symbol index. */
   protected int error_sym() {return 1;}
 
 
@@ -427,7 +427,7 @@ public class Parser extends java_cup.runtime.lr_parser {
 
 
 
- /* override error routines */
+ /* override ERROR routines */
   protected Lexer lexer;
   public void report_fatal_error(
     String   message,
@@ -516,7 +516,7 @@ class CUP$Parser$actions {
   /** left hand side non terminal of the current production */
   protected NonTerminal lhs_nt;
 
-  /** Current precedence number */
+  /** Current precedence size */
   int _cur_prec = 0;
 
   /** Current precedence side */
@@ -557,7 +557,7 @@ class CUP$Parser$actions {
     {
       java_cup.runtime.Stack<java_cup.runtime.Symbol> CUP$Parser$stack = this.parser.getStack();
 
-      /* select the action based on the action number */
+      /* select the action based on the action size */
       switch (CUP$Parser$act_id){
 	case 0: // $START ::= spec EOF 
 	{
@@ -574,8 +574,8 @@ class CUP$Parser$actions {
 	{
 		Object RESULT =null;
 
-          /* declare "error" as a terminal */
-          symbols.put("error", new SymbolPart(Terminal.error));
+          /* declare "ERROR" as a terminal */
+          symbols.put("error", new SymbolPart(Terminal.ERROR));
 
           /* declare start non terminal */
           non_terms.put("$START", NonTerminal.START_nt);
@@ -592,7 +592,7 @@ class CUP$Parser$actions {
 		return RESULT;
 	}
 
-	case 3: // spec ::= error symbol_list precedence_list start_spec production_list 
+	case 3: // spec ::= ERROR symbol_list precedence_list start_spec production_list 
 	{
 		Object RESULT =null;
 
@@ -814,7 +814,7 @@ class CUP$Parser$actions {
 		return RESULT;
 	}
 
-	case 28: // symbol ::= TERMINAL error NT$3 SEMI 
+	case 28: // symbol ::= TERMINAL ERROR NT$3 SEMI 
 	{
 		Object RESULT =null;
 		// propagate RESULT from NT$3
@@ -833,7 +833,7 @@ class CUP$Parser$actions {
 		return RESULT;
 	}
 
-	case 30: // symbol ::= non_terminal error NT$4 SEMI 
+	case 30: // symbol ::= non_terminal ERROR NT$4 SEMI 
 	{
 		Object RESULT =null;
 		// propagate RESULT from NT$4
@@ -1138,7 +1138,7 @@ class CUP$Parser$actions {
 		return RESULT;
 	}
 
-	case 61: // production ::= error NT$12 SEMI 
+	case 61: // production ::= ERROR NT$12 SEMI 
 	{
 		Object RESULT =null;
 		// propagate RESULT from NT$12
@@ -1516,7 +1516,7 @@ class CUP$Parser$actions {
 		return RESULT;
 	}
 
-	case 90: // nt_id ::= error 
+	case 90: // nt_id ::= ERROR 
 	{
 		String RESULT =null;
 		
@@ -1535,7 +1535,7 @@ class CUP$Parser$actions {
 		return RESULT;
 	}
 
-	case 92: // symbol_id ::= error 
+	case 92: // symbol_id ::= ERROR 
 	{
 		String RESULT =null;
 		
@@ -1661,7 +1661,7 @@ class CUP$Parser$actions {
 		return RESULT;
 	}
 
-	case 109: // robust_id ::= error 
+	case 109: // robust_id ::= ERROR 
 	{
 		String RESULT =null;
 		
