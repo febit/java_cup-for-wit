@@ -573,7 +573,7 @@ public class Emit {
             prod_table[i][1] = (short) prod.rhs_length();
         }
         /* do the top of the table */
-        out.println("    static final short[][] PRODUCTION_TABLE = loadFromDataFile(\"Production\");");
+//        out.println("    static final short[][] PRODUCTION_TABLE = loadFromDataFile(\"Production\");");
 //        out.print("    unpackFromStrings(");
 //        do_table_as_string(out, prod_table);
 //        out.println(");");
@@ -655,7 +655,7 @@ public class Emit {
         }
 
         /* finish off the init of the table */
-        out.println("    static final short[][] ACTION_TABLE = loadFromDataFile(\"Action\");");
+//        out.println("    static final short[][] ACTION_TABLE = loadFromDataFile(\"Action\");");
 //        out.print("    unpackFromStrings(");
 //        do_table_as_string(out, action_table);
 //        out.println(");");
@@ -711,7 +711,7 @@ public class Emit {
         }
 
         /* Emit the table. */
-        out.println("    static final short[][] REDUCE_TABLE = loadFromDataFile(\"Reduce\");");
+//        out.println("    static final short[][] REDUCE_TABLE = loadFromDataFile(\"Reduce\");");
 //        out.print("    unpackFromStrings(");
 //        do_table_as_string(out, reduce_goto_table);
 //        out.println(");");
