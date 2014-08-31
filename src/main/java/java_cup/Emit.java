@@ -428,7 +428,8 @@ public class Emit {
             if (prod instanceof ActionProduction) {
                 int lastResult = ((ActionProduction) prod).getIndexOfIntermediateResult();
                 if (lastResult != -1) {
-                    buffer.append("                return (" + prod.lhs().the_symbol().stack_type() + ") myStack.peek(" + (lastResult - 1) + ").value;\n");
+                    //type: (" + prod.lhs().the_symbol().stack_type() + ")
+                    buffer.append("                return myStack.peek(" + (lastResult - 1) + ").value;\n");
                 }
             }
 
@@ -519,7 +520,7 @@ public class Emit {
         //out.println("      " + runtime_pkg_name + ".Symbol " + pre("result") + ";");
         //out.println("      /* SymbolFactory object for create Symbol object */");
         //out.println("      " + runtime_pkg_name + ".SymbolFactory " + pre("SymbolFactory") + " = parser.getSymbolFactory();");
-        out.println("        Stack<Symbol> myStack = this._stack;");
+        out.println("        final Stack<Symbol> myStack = this._stack;");
 //        out.println("      //RESULT_DEBUG: /*");
 //        out.println("      Object RESULT;");
 //        out.println("      //RESULT_DEBUG: */");
@@ -527,7 +528,6 @@ public class Emit {
         out.println();
 
         /* switch top */
-        out.println("        /* select the action based on the action number */");
         out.println("        switch (actionId){");
 
         ArrayList<ProductionCodeWrap> codeWraps = resolveProductionCodeWraps(start_prod);
@@ -548,7 +548,7 @@ public class Emit {
 
         /* end of switch */
         out.println("            default:");
-        out.println("                throw new ParseException(\"Invalid action number found in internal parse table\");");
+        out.println("                throw new ParseException(\"Invalid action id.\");");
         out.println("        }");
 
         action_code_time = System.currentTimeMillis() - start_time;
@@ -841,6 +841,7 @@ public class Emit {
         }
 
         /* access to action code */
+        out.println("    @SuppressWarnings(\"unchecked\")");
         out.println("    final Object doAction(int actionId) throws ParseException {");
         emit_action_code(out, start_prod);
         out.println("    }");

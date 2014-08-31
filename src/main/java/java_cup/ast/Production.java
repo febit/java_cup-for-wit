@@ -1,10 +1,7 @@
 package java_cup.ast;
 
-import java_cup.ast.ActionProduction;
-import java_cup.ast.ActionPart;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java_cup.Emit;
 import java_cup.InternalException;
 import java_cup.StringUtil;
 import java_cup.symbol;
@@ -507,6 +504,7 @@ public class Production {
                         });
                     } else {
                         final_action = StringUtil.replace(final_action, repalce_value, "(" + stack_type + ") myStack.peek(" + offset + ").value");
+                        final_action = final_action.replaceAll("return \\([a-zA-Z0-9_$]+\\) (myStack\\.peek\\([0-9]+\\)\\.value;)", "return $1");
                     }
                 }
             }

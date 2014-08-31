@@ -1,14 +1,11 @@
 package java_cup.ast;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java_cup.Assoc;
 import java_cup.InternalException;
-import static java_cup.ast.NonTerminal._all_by_index;
 import java_cup.symbol;
 
 /**
