@@ -4,7 +4,7 @@
 
     <groupId>java_cup</groupId>
     <artifactId>java_cup_for_webit_script</artifactId>
-    <version>20140831</version>
+    <version>20140902</version>
     <packaging>jar</packaging>
 
     <name>java_cup_for_webit_script</name>

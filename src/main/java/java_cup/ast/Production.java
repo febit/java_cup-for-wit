@@ -495,12 +495,12 @@ public class Production {
                                 || final_action.indexOf(repalce_column) >= 0;
                     }
                     if (count_value) {
-                        declaration.append("                Symbol " + labelname + "$Symbol = myStack.peek(" + offset + ");\n");
-                        //declaration.append("\t\t" + stack_type + " " + labelname + " = (" + stack_type + ") " + labelname + "$Symbol.value;\n");
+                        declaration.append("                Symbol " + labelname + "Symbol = myStack.peek(" + offset + ");\n");
+                        //declaration.append("\t\t" + stack_type + " " + labelname + " = (" + stack_type + ") " + labelname + "Symbol.value;\n");
                         final_action = StringUtil.replace(final_action, new String[]{
                             repalce_value, repalce_line, repalce_column
                         }, new String[]{
-                            "(" + stack_type + ") " + labelname.concat("$Symbol.value"), labelname.concat("$Symbol.line"), labelname.concat("$Symbol.column")
+                            "(" + stack_type + ") " + labelname.concat("Symbol.value"), labelname.concat("Symbol.line"), labelname.concat("Symbol.column")
                         });
                     } else {
                         final_action = StringUtil.replace(final_action, repalce_value, "(" + stack_type + ") myStack.peek(" + offset + ").value");

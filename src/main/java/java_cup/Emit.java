@@ -520,7 +520,7 @@ public class Emit {
         //out.println("      " + runtime_pkg_name + ".Symbol " + pre("result") + ";");
         //out.println("      /* SymbolFactory object for create Symbol object */");
         //out.println("      " + runtime_pkg_name + ".SymbolFactory " + pre("SymbolFactory") + " = parser.getSymbolFactory();");
-        out.println("        final Stack<Symbol> myStack = this._stack;");
+        out.println("        final Stack<Symbol> myStack = this.symbolStack;");
 //        out.println("      //RESULT_DEBUG: /*");
 //        out.println("      Object RESULT;");
 //        out.println("      //RESULT_DEBUG: */");
@@ -539,9 +539,14 @@ public class Emit {
             out.println("            case " + codeWrap.id + ": // " + codeWrap.remark);
             if (codeWrap.useNext == false) {
                 /* give them their own block to work in */
-                out.println("            {");
+                boolean needWrap = !codeWrap.caseBody.trim().startsWith("return ");
+                if (needWrap) {
+                    out.println("            {");
+                }
                 out.println(codeWrap.caseBody);
-                out.println("            }");
+                if (needWrap) {
+                    out.println("            }");
+                }
             }
 
         }
@@ -659,7 +664,6 @@ public class Emit {
 //        out.print("    unpackFromStrings(");
 //        do_table_as_string(out, action_table);
 //        out.println(");");
-
         saveToDataFile(action_table, "Action");
 
 //      /* do the public accessor method */
@@ -819,7 +823,7 @@ public class Emit {
         do_action_table(out, action_table);
         do_reduce_table(out, reduce_table);
 
-        assert start_st==0;
+        assert start_st == 0;
 //
 //      /* method to indicate start Production */
 //      out.println("  /** Indicates start production. */");
