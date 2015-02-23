@@ -1,10 +1,5 @@
-// Copyright (c) 2013, Webit Team. All Rights Reserved.
 package java_cup;
 
-/**
- *
- * @author Zqq
- */
 public class StringUtil {
 
     public static String replace(String s, String sub, String with) {
@@ -26,7 +21,7 @@ public class StringUtil {
         return sb.toString();
     }
 
-    public static int[] indexOf(String s, String arr[], int start) {
+    public static int[] indexOf(String s, String[] arr, int start) {
         int arrLen = arr.length;
         int index = Integer.MAX_VALUE;
         int last = -1;

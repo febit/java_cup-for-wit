@@ -1,16 +1,13 @@
 package java_cup;
 
-/* Defines integers that represent the associativity of terminals
- * @version last updated: 7/3/96
- * @author  Frank Flannery
+/**
+ * Defines integers that represent the associativity of terminals.
  */
+public interface Assoc {
 
-public class Assoc {
-
-  /* various associativities, no_prec being the default value */
-  public final static int left = 0;
-  public final static int right = 1;
-  public final static int nonassoc = 2;
-  public final static int no_prec = -1;
+    int LEFT = 0;
+    int RIGHT = 1;
+    int NONASSOC = 2;
+    int NONE = -1;
 
 }

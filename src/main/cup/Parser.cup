@@ -1,0 +1,161 @@
+
+package java_cup.core;
+
+import java.util.ArrayList;
+import java.util.List;
+import java_cup.Assoc;
+import java_cup.Main;
+
+
+terminal
+            PACKAGE, IMPORT, SUPER, EXTENDS,
+            TERMINAL, NONTERMINAL, PRECEDENCE, NONASSOC, PERCENT_PREC,
+            SEMI, COMMA, COLON, COLON_COLON_EQUALS, BAR,
+            LEFT, RIGHT, LBRACK, RBRACK, GT, LT,
+            QUESTION;
+
+terminal String ID, CODE, CLASSNAME;
+
+nonterminal
+            start, pkg, imports,
+            varTerms, prods, 
+            varTerm, 
+            prod, prodHead, prodParts, 
+            prodPart, rhsList, rhs,
+            preceds, preced;
+
+nonterminal List<String> symbolList;
+nonterminal String  typeName, robustIdent, typearglist, typearguement;
+
+
+start       ::= pkg
+                imports
+                varTerms
+                preceds
+                prods
+                {: return null; :}
+                ;
+
+pkg         ::= 
+                {: return null; :}
+                | PACKAGE CLASSNAME:name
+                {: Main.packageName = %name%; return null; :}
+                ;
+
+imports     ::= 
+                {: return null; :}
+                |imports IMPORT CLASSNAME:name
+                {: Main.imports.add(%name%); return null; :}
+                ;
+
+varTerms    ::= varTerm
+                {: return null; :}
+                | varTerms varTerm
+                {: return null; :}
+                ;
+
+
+symbolList  ::= ID:sym
+                {: List<String> symbolList = new ArrayList(); symbolList.add(%sym%); return symbolList; :}
+                | symbolList:symbolList COMMA ID:sym
+                {: (%symbolList%).add(%sym%); return %symbolList%; :}
+                ;
+
+varTerm     ::= TERMINAL typeName:type symbolList:symbolList SEMI
+                {: declearTerminals(%symbolList%, %type%); return null; :}
+                | TERMINAL symbolList:symbolList SEMI
+                {: declearTerminals(%symbolList%, null); return null; :}
+                | NONTERMINAL typeName:type symbolList:symbolList SEMI
+                {: declearNonTerminals(%symbolList%, %type%); return null; :}
+                | NONTERMINAL symbolList:symbolList SEMI
+                {: declearNonTerminals(%symbolList%, null); return null; :}
+                ;
+
+preceds     ::= 
+                {: return null; :}
+                | preceds preced
+                {: return null; :}
+                ;
+
+preced      ::= PRECEDENCE LEFT symbolList:symbolList SEMI
+                {: return addPrecedence(Assoc.LEFT, %symbolList%); :}
+                | PRECEDENCE RIGHT symbolList:symbolList SEMI
+                {: return addPrecedence(Assoc.RIGHT, %symbolList%); :}
+                | PRECEDENCE NONASSOC symbolList:symbolList SEMI
+                {: return addPrecedence(Assoc.NONASSOC, %symbolList%); :}
+                ;
+
+
+prods       ::= prod
+                {: return null; :}
+                | prods prod 
+                {: return null; :}
+                ;
+
+
+prodHead    ::= ID:lhs_id {: setLeftHandler(%lhs_id%); return null; :};
+
+prod        ::= prodHead COLON_COLON_EQUALS rhsList SEMI
+                {: return null; :};
+
+rhsList     ::= rhs
+                {: return null; :}
+                | rhsList BAR rhs
+                {: return null; :};
+
+rhs         ::= prodParts PERCENT_PREC ID:sym
+                {: createProductionWithPrecedence(%sym%); return null; :}
+                | prodParts
+                {: createProduction(); return null; :} 
+                ;
+
+prodParts   ::= 
+                {: return null; :}
+                | prodParts prodPart
+                {: return null; :}
+                ;
+
+
+prodPart    ::= ID:sym COLON robustIdent:labid
+                {: addRightHandler(%sym%, %labid%); return null; :}
+                | ID:sym
+                {: addRightHandler(%sym%, null); return null; :}
+                | CODE:code
+                {: addRightActionHandler(%code%); return null; :}
+                ;
+
+typearglist ::= typearguement:arg
+                {: return %arg%; :}
+                | typearglist:args COMMA typearguement:arg
+                {: return (%args%) + (%arg%); :}
+                ;
+
+typearguement ::=
+                typeName:id
+                {: return %id%;  :}
+                | QUESTION
+                {: return " ? "; :}
+                | QUESTION EXTENDS robustIdent:id
+                {: return " ? extends " + (%id%); :}
+                | QUESTION SUPER robustIdent:id
+                {: return " ? super " + (%id%); :}
+                ;
+
+typeName    ::= robustIdent:id
+                {: return %id%; :}
+                | typeName:id LBRACK RBRACK
+                {: return (%id%).concat("[]"); :}
+                | robustIdent:id LT typearglist:args GT
+                {: return (%id%) + '<' + (%args%) +'>'; :}
+                ;
+
+
+robustIdent ::= ID:the_id	{: return %the_id%; :}
+                | TERMINAL	{: return "terminal"; :}
+                | NONTERMINAL	{: return "nonterminal"; :}
+                | PRECEDENCE	{: return "precedence"; :}
+                | LEFT		{: return "left"; :}
+                | RIGHT		{: return "right"; :}
+                | NONASSOC	{: return "nonassoc"; :}
+                ;
+ 

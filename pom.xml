@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>java_cup</groupId>
-    <artifactId>java_cup_for_webit_script</artifactId>
-    <version>20140902</version>
+    <artifactId>java_cup_webit</artifactId>
+    <version>20150227</version>
     <packaging>jar</packaging>
 
-    <name>java_cup_for_webit_script</name>
+    <name>java_cup_webit</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

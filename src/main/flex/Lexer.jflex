@@ -1,40 +1,45 @@
-package java_cup;
-import java_cup.runtime.ComplexSymbolFactory;
-import java_cup.runtime.ComplexSymbolFactory.Location;
-import java_cup.runtime.Symbol;
-import java.lang.Error;
-import java.io.InputStreamReader;
+package java_cup.core;
+
+import java_cup.Main;
 
 %%
-
 %class Lexer
-%implements sym
-%public
-%unicode
+%type Symbol
+%function nextToken
 %line
 %column
-%cup
+%buffer 8192
 %{
-    public Lexer(ComplexSymbolFactory sf){
-	this(new InputStreamReader(System.in));
-        symbolFactory = sf;
+
+    private final StringBuilder buffer = new StringBuilder();
+    private int csline, cscolumn;
+
+    public int getColumn(){
+        return yycolumn + 1;
     }
-    private StringBuffer sb;
-    private ComplexSymbolFactory symbolFactory;
-    private int csline,cscolumn;
-    public Symbol symbol(String name, int code){
-//	System.out.println("code:"+code+" "+yytext());
-	return symbolFactory.newSymbol(name, code,new Location(yyline+1,yycolumn+1-yylength()),new Location(yyline+1,yycolumn+1));
+    
+    public int getLine(){
+        return yyline + 1;
     }
-    public Symbol symbol(String name, int code, String lexem){
-//	System.out.println("code:"+code+", lexem :"+lexem);
-	return symbolFactory.newSymbol(name, code, new Location(yyline+1, yycolumn +1), new Location(yyline+1,yycolumn+yylength()), lexem);
+
+    private char yychar(){
+        return (char)yychar;
     }
-    protected void emit_warning(String message){
-	ErrorManager.getManager().emit_warning("Scanner at " + (yyline+1) + "(" + (yycolumn+1) + "): " + message);
+
+    private Symbol symbol(int sym) {
+        return new Symbol(sym, yyline + 1, yycolumn + 1, sym);
     }
-    protected void emit_error(String message){
-	ErrorManager.getManager().emit_error("Scanner at " + (yyline+1) + "(" + (yycolumn+1) +  "): " + message);
+
+    private Symbol symbol(int sym, Object val) {
+        return new Symbol(sym, yyline + 1, yycolumn + 1, val);
+    }
+    
+    private Symbol symbol(int sym, int line, int column, Object val) {
+        return new Symbol(sym, line, column, val);
+    }
+
+    private void error(String message) {
+        Main.error("Scanner at " + (yyline + 1) + "(" + (yycolumn + 1) + "): " + message);
     }
 %}
 
@@ -51,57 +56,52 @@ ident = ([:jletter:] | "_" ) ([:jletterdigit:] | [:jletter:] | "_" )*
 
 
 %eofval{
-    return symbolFactory.newSymbol("EOF",sym.EOF);
+    return symbol(Tokens.EOF);
 %eofval}
 
-%state CODESEG
+%state CODESEG CLASSNAME
 
 %%  
 
 <YYINITIAL> {
 
   {Whitespace}  {                                              }
-  "?"           { return symbol("QESTION",QUESTION);           }
-  ";"           { return symbol("SEMI",SEMI);                  }
-  ","           { return symbol("COMMA",COMMA);                }
-  "*"           { return symbol("STAR",STAR);                  }
-  "."           { return symbol("DOT",DOT);                    }
-  "|"           { return symbol("BAR",BAR);                    }
-  "["           { return symbol("LBRACK",LBRACK);              }
-  "]"           { return symbol("RBRACK",RBRACK);              }
-  ":"           { return symbol("COLON",COLON);                }
-  "::="         { return symbol("COLON_COLON_EQUALS",COLON_COLON_EQUALS);   }
-  "%prec"       { return symbol("PERCENT_PREC",PERCENT_PREC);  }
-  ">"           { return symbol("GT",GT);                      }
-  "<"           { return symbol("LT",LT);                      }
+  "?"           { return symbol(Tokens.QUESTION);              }
+  ";"           { return symbol(Tokens.SEMI);                  }
+  ","           { return symbol(Tokens.COMMA);                }
+  "|"           { return symbol(Tokens.BAR);                    }
+  "["           { return symbol(Tokens.LBRACK);              }
+  "]"           { return symbol(Tokens.RBRACK);              }
+  ":"           { return symbol(Tokens.COLON);                }
+  "::="         { return symbol(Tokens.COLON_COLON_EQUALS);   }
+  "%prec"       { return symbol(Tokens.PERCENT_PREC);  }
+  ">"           { return symbol(Tokens.GT);                      }
+  "<"           { return symbol(Tokens.LT);                      }
   {Comment}     {                                              }
-  "{:"          { sb = new StringBuffer(); csline=yyline+1; cscolumn=yycolumn+1; yybegin(CODESEG);    }
-  "package"     { return symbol("PACKAGE",PACKAGE);            } 
-  "import"      { return symbol("IMPORT",IMPORT);	       }
-  "code"        { return symbol("CODE",CODE);		       }
-  "action"      { return symbol("ACTION",ACTION);	       }
-  "parser"      { return symbol("PARSER",PARSER);	       }
-  "terminal"    { return symbol("PARSER",TERMINAL);	       }
-  "non"         { return symbol("NON",NON);		       }
-  "nonterminal" { return symbol("NONTERMINAL",NONTERMINAL);    }
-  "init"        { return symbol("INIT",INIT);		       }
-  "scan"        { return symbol("SCAN",SCAN);		       }
-  "with"        { return symbol("WITH",WITH);		       }
-  "start"       { return symbol("START",START);		       }
-  "precedence"  { return symbol("PRECEDENCE",PRECEDENCE);      }
-  "left"        { return symbol("LEFT",LEFT);		       }
-  "right"       { return symbol("RIGHT",RIGHT);		       }
-  "nonassoc"    { return symbol("NONASSOC",NONASSOC);          }
-  "extends"     { return symbol("EXTENDS",EXTENDS);            }
-  "super"       { return symbol("SUPER",SUPER);                }
-  {ident}       { return symbol("ID",ID,yytext());             }
-  
+  "{:"          { buffer.setLength(0); csline=yyline+1; cscolumn=yycolumn+1; yybegin(CODESEG);    }
+  "package"     { yybegin(CLASSNAME); buffer.setLength(0); return symbol(Tokens.PACKAGE);            } 
+  "import"      { yybegin(CLASSNAME); buffer.setLength(0); return symbol(Tokens.IMPORT);	       }
+  "terminal"    { return symbol(Tokens.TERMINAL);	       }
+  "nonterminal" { return symbol(Tokens.NONTERMINAL);	       }
+  "precedence"  { return symbol(Tokens.PRECEDENCE);      }
+  "left"        { return symbol(Tokens.LEFT);		       }
+  "right"       { return symbol(Tokens.RIGHT);		       }
+  "nonassoc"    { return symbol(Tokens.NONASSOC);          }
+  "super"       { return symbol(Tokens.SUPER);          }
+  "extends"     { return symbol(Tokens.EXTENDS);          }
+  {ident}       { return symbol(Tokens.ID, yytext());             }
 }
 
 <CODESEG> {
-  ":}"         { yybegin(YYINITIAL); return symbolFactory.newSymbol("CODE_STRING",CODE_STRING, new Location(csline, cscolumn),new Location(yyline+1,yycolumn+1+yylength()), sb.toString()); }
-  .|\n            { sb.append(yytext()); }
+  ":}"          { yybegin(YYINITIAL); return symbol(Tokens.CODE, csline, cscolumn, buffer.toString()); }
+  [^]           { buffer.append(yytext()); }
 }
 
+<CLASSNAME> {
+  ";"           { yybegin(YYINITIAL); return symbol(Tokens.CLASSNAME, csline, cscolumn, buffer.toString().trim()); }
+  [^]           { buffer.append(yytext()); }
+}
+
+
 // error fallback
-.|\n          { emit_warning("Unrecognized character '" +yytext()+"' -- ignored"); }
+[^]             { error("Unrecognized character '" +yytext()+"' -- ignored"); }
