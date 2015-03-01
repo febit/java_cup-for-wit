@@ -66,10 +66,10 @@ public class Main {
         Main.unusedTermCount = 0;
         Main.expectConflicts = 0;
         Main.optDumpStates = Main.optDumpGrammar = Main.optDumpTables = false;
-        Terminal.clear();
+        LalrState.clear();
         Production.clear();
         NonTerminal.clear();
-        LalrState.clear();
+        Terminal.clear();
     }
 
     public static void main(String args[]) throws InternalException, java.io.IOException, java.lang.Exception {
@@ -410,8 +410,8 @@ public class Main {
             if (prod == startProduction) {
                 buffer.append("                this.goonParse = false;\n");
             }
-            if (prod.action != null) {
-                buffer.append(prod.action);
+            if (prod.code != null) {
+                buffer.append(prod.code);
             }
             if (buffer.indexOf("return ") < 0) {
                 throw new RuntimeException("Production must has a 'return':" + prod);
@@ -541,6 +541,69 @@ public class Main {
         }
     }
 
+    public static void reportShiftReduceConflict(LalrState state, LalrItem red_itm, int conflictSymbol) {
+
+        StringBuilder message = new StringBuilder()
+                .append("*** Shift/Reduce conflict found in state #").append(state.id)
+                .append("\n" + "  between ").append(red_itm).append("\n");
+
+        /* get and report on iterator items that shift under our conflict symbol */
+        for (LalrItem itm : state.items.values()) {
+
+            /* only look if its not the same item and not a reduce */
+            if (itm != red_itm && !itm.dotAtEnd) {
+                /* is it a shift on our conflicting Terminal */
+                symbol shift_sym = itm.symbolAfterDot;
+                if ((shift_sym instanceof Terminal) && shift_sym.id == conflictSymbol) {
+                    /* yes, report on it */
+                    message.append("  and     ").append(itm).append('\n');
+                }
+            }
+        }
+        message.append("  under symbol ").append(Terminal.get(conflictSymbol).name)
+                .append("\n  Resolved in favor of shifting.\n");
+
+        /* count the conflict */
+        Main.conflictCount++;
+        Main.warning(message.toString());
+    }
+
+    /**
+     * Produce a warning message for one reduce/reduce conflict.
+     *
+     * @param state
+     * @param itm1 first item in conflict.
+     * @param itm2 second item in conflict.
+     */
+    public static void reportReduceReduceConflict(LalrState state, LalrItem itm1, LalrItem itm2) {
+
+        StringBuilder message = new StringBuilder()
+                .append("*** Reduce/Reduce conflict found in state #").append(state.id)
+                .append("\n  between ").append(itm1.toString())
+                .append("\n  and     ").append(itm2.toString())
+                .append("\n  under symbols: {");
+        boolean comma_flag = false;
+        for (int t = 0; t < Terminal.size(); t++) {
+            if ((itm1.lookahead).contains(t) && (itm2.lookahead).contains(t)) {
+                if (comma_flag) {
+                    message.append(',');
+                } else {
+                    comma_flag = true;
+                }
+                message.append(Terminal.get(t).name);
+            }
+        }
+        message.append("}\n  Resolved in favor of ");
+        if ((itm1.production).id < (itm2.production).id) {
+            message.append("the first production.\n");
+        } else {
+            message.append("the second production.\n");
+        }
+        /* count the conflict */
+        Main.conflictCount++;
+        Main.warning(message.toString());
+    }
+
     private static void printSummary(boolean written) {
 
         System.err.println("------- " + Main.title + " Parser Generation Summary -------");
@@ -569,7 +632,7 @@ public class Main {
     public static void dumpGrammar() {
         System.err.println("===== Terminals =====");
         for (int i = 0; i < Terminal.size(); i++) {
-            System.err.print("[" + i + ']' + Terminal.find(i).name + ' ');
+            System.err.print("[" + i + ']' + Terminal.get(i).name + ' ');
             if ((i + 1) % 5 == 0) {
                 System.err.println();
             }
@@ -625,7 +688,7 @@ public class Main {
             int cnt = 0;
             Action[] actions = actionTable[row];
             for (int col = 0; col < actions.length; col++) {
-                /* if the action is not an error print it */
+                /* if the code is not an error print it */
                 if (actions[col].type() != Action.ERROR) {
                     err.print(" [term " + col + ':' + actions[col] + ']');
                     /* end the line after the 2nd one */

@@ -133,7 +133,8 @@ public class LalrItem {
     /**
      * Produce the new LalrItem that results from shifting the dot one position
      * to the right.
-     * @return 
+     *
+     * @return
      */
     public LalrItem shift() {
 
@@ -248,69 +249,34 @@ public class LalrItem {
 
     @Override
     public String toString() {
-        String result = "";
-
-        // additional output for debugging:
-        // result += "(" + obj_hash() + ")"; 
-        result += "[";
-
-        if (production.lhs != null
-                && (production.lhs).sym != null
-                && ((production.lhs).sym).name != null) {
-            result += ((production.lhs).sym).name;
-        } else {
-            result += "$$NULL$$";
-        }
-
-        result += " ::= ";
-
+        StringBuilder result = new StringBuilder();
+        result.append('[').append(production.lhs.sym.name).append(" ::= ");
         for (int i = 0; i < production.rhs.length; i++) {
             /* do we need the dot before this one? */
             if (i == dotPos) {
-                result += "(*) ";
+                result.append("(*) ");
             }
-
-            /* print the name of the part */
-            if (production.rhs[i] == null) {
-                result += "$$NULL$$ ";
-            } else {
-                ProductionItem part = production.rhs[i];
-                if (part == null) {
-                    result += "$$NULL$$ ";
-                } else if (part.sym != null && part.sym.name != null) {
-                    result += part.sym.name + " ";
-                } else {
-                    result += "$$NULL$$ ";
-                }
-            }
+            result.append(production.rhs[i].sym.name).append(' ');
         }
 
         /* put the dot after if needed */
         if (dotPos == production.rhs.length) {
-            result += "(*) ";
+            result.append("(*) ");
         }
 
-        result += ", ";
+        result.append(',');
         if (lookahead != null) {
-            result += "{";
+            result.append('{');
             for (int t = 0; t < Terminal.size(); t++) {
                 if (lookahead.contains(t)) {
-                    result += Terminal.find(t).name + " ";
+                    result.append(Terminal.get(t).name).append(' ');
                 }
             }
-            result += "}";
+            result.append('}');
         } else {
-            result += "NULL LOOKAHEAD!!";
+            result.append("NULL LOOKAHEAD!!");
         }
-        result += "]";
-
-        // additional output for debugging:
-        // result += " -> ";
-        // for (int i = 0; i<propagate_items().size(); i++)
-        //   result+=((LalrItem)(propagate_items().elementAt(i))).obj_hash()+" ";
-        //
-        // if (needs_propagation) result += " NP";
-        return result;
+        return result.append(']').toString();
     }
 
 }

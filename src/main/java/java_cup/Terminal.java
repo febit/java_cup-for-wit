@@ -14,11 +14,11 @@ public class Terminal extends symbol {
 
     public static void clear() {
         all.clear();
-        EOF = new Terminal("EOF");
-        ERROR = new Terminal("ERROR");
+        EOF = Terminal.create("EOF", null);
+        ERROR = Terminal.create("ERROR", null);
     }
 
-    public static Terminal find(int indx) {
+    public static Terminal get(int indx) {
         return (Terminal) all.get(indx);
     }
 
@@ -26,18 +26,23 @@ public class Terminal extends symbol {
         return all.size();
     }
 
+    public static Terminal create(String nm) {
+        return create(nm, null);
+    }
+
+    public static Terminal create(String name, String type) {
+        Terminal terminal = new Terminal(all.size(), name, type);
+        all.add(terminal);
+        return terminal;
+    }
+
     private int _precedence;
     private int _precedenceSide;
 
-    public Terminal(String nm, String tp) {
-        super(all.size(), nm, tp);
+    private Terminal(int id, String nm, String tp) {
+        super(id, nm, tp);
         this._precedenceSide = Assoc.NONASSOC;
         this._precedence = Assoc.NONE;
-        all.add(this);
-    }
-
-    public Terminal(String nm) {
-        this(nm, null);
     }
 
     public void setPrecedence(int side, int precedence) {

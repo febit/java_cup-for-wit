@@ -59,13 +59,13 @@ abstract class AbstractParser extends BaseParser {
 
     void declearNonTerminals(List<String> names, String type) {
         for (String name : names) {
-            declearSymbol(new NonTerminal(name, type));
+            declearSymbol(NonTerminal.create(name, type));
         }
     }
 
     void declearTerminals(List<String> names, String type) {
         for (String name : names) {
-            declearSymbol(new Terminal(name, type));
+            declearSymbol(Terminal.create(name, type));
         }
     }
 
@@ -122,19 +122,19 @@ abstract class AbstractParser extends BaseParser {
         addRightHandler(startSymbol, null);
         addRightHandler(Terminal.EOF, null);
         addRightActionHandler("return myStack.peek(1).value;");
-        Main.startProduction = new Production(NonTerminal.START, rightSymbolPool, rightSymbolPoolCount);
+        Main.startProduction = Production.create(NonTerminal.START, rightSymbolPool, rightSymbolPoolCount);
         new_rhs();
     }
 
     void createProductionWithPrecedence(String termName) {
         Terminal terminal = getTerminal(termName);
         terminal.use();
-        new Production(leftSymbol, rightSymbolPool, rightSymbolPoolCount, terminal.precedence());
+        Production.create(leftSymbol, rightSymbolPool, rightSymbolPoolCount, terminal.precedence());
         new_rhs();
     }
 
     void createProduction() {
-        new Production(leftSymbol, rightSymbolPool, rightSymbolPoolCount);
+        Production.create(leftSymbol, rightSymbolPool, rightSymbolPoolCount);
         new_rhs();
     }
 

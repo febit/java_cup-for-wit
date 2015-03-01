@@ -10,19 +10,8 @@ import java.util.ArrayList;
  */
 public class Production {
 
-    public final int id;
-    public final ProductionItem lhs;
-    public final ProductionItem[] rhs;
-    public final String action;
-    public final int precedence;
-
-    public Production(NonTerminal lhsSymbol, Object[] rhs, int rhsLen, String code) {
-        this(lhsSymbol, rhs, rhsLen, code, true, -1);
-    }
-
-    protected Production(NonTerminal lhsSymbol, Object[] rhs, int rhsLen, String code, boolean calPrec, int _rhs_prec) {
+    private static Production create(NonTerminal lhsSymbol, Object[] rhsCandi, int rhsLen, String code, int prec) {
         lhsSymbol.use();
-        this.lhs = new ProductionItem(lhsSymbol);
 
         if (code == null) {
             code = "";
@@ -33,8 +22,9 @@ public class Production {
         ProductionItem[] temp = new ProductionItem[rhsLen];
         int count = 0;
         String lasAction = null;
+        boolean calPrec = prec < -1;
         for (int i = 0; i < rhsLen; i++) {
-            Object part = rhs[i];
+            Object part = rhsCandi[i];
             if (part instanceof ProductionItem) {
                 if (lasAction != null) {
                     temp[count++] = createInsidePart(lasAction);
@@ -44,7 +34,7 @@ public class Production {
                 symbol sym = ((ProductionItem) part).sym;
                 sym.use();
                 if (calPrec && sym instanceof Terminal) {
-                    _rhs_prec = ((Terminal) sym).precedence();
+                    prec = ((Terminal) sym).precedence();
                 }
             } else {
                 if (lasAction == null) {
@@ -55,34 +45,32 @@ public class Production {
             }
         }
 
-        this.rhs = new ProductionItem[count];
+        ProductionItem[] rhs = new ProductionItem[count];
         if (count > 0) {
-            System.arraycopy(temp, 0, this.rhs, 0, count);
+            System.arraycopy(temp, 0, rhs, 0, count);
         }
 
         if (lasAction != null) {
             code += lasAction.trim();
         }
 
-        code = resolveCode(this.rhs, code);
-
-        this.action = "                " + code;
-        this.precedence = _rhs_prec;
-        id = all.size();
-        all.add(this);
-        lhsSymbol.productions.add(this);
+        code = resolveCode(rhs, code);
+        Production prod = new Production(all.size(), new ProductionItem(lhsSymbol), rhs, code, prec);
+        all.add(prod);
+        lhsSymbol.productions.add(prod);
+        return prod;
     }
 
-    public Production(NonTerminal lhs_sym, Object[] rhs_parts, int rhs_l) {
-        this(lhs_sym, rhs_parts, rhs_l, null);
+    public static Production create(NonTerminal lhsSymbol, Object[] rhs, int rhsLen, String code) {
+        return create(lhsSymbol, rhs, rhsLen, code, -2);
     }
 
-    public Production(
-            NonTerminal lhs_sym,
-            Object[] rhs,
-            int rhs_l,
-            int prec_num) {
-        this(lhs_sym, rhs, rhs_l, null, false, prec_num);
+    public static Production create(NonTerminal lhs_sym, Object[] rhs_parts, int rhs_l) {
+        return create(lhs_sym, rhs_parts, rhs_l, null, -2);
+    }
+
+    public static Production create(NonTerminal lhs_sym, Object[] rhs, int rhs_l, int prec_num) {
+        return create(lhs_sym, rhs, rhs_l, null, prec_num);
     }
 
     public static final ArrayList<Production> all = new ArrayList<Production>();
@@ -92,10 +80,23 @@ public class Production {
         all.clear();
     }
 
+    public final int id;
+    public final ProductionItem lhs;
+    public final ProductionItem[] rhs;
+    public final String code;
+    public final int precedence;
     /**
      * Count of size of reductions using this Production.
      */
     protected boolean reductionUsed = false;
+
+    private Production(int id, ProductionItem lhs, ProductionItem[] rhs, String code, int precedence) {
+        this.id = id;
+        this.lhs = lhs;
+        this.rhs = rhs;
+        this.code = code;
+        this.precedence = precedence;
+    }
 
     /**
      * Count of size of reductions using this Production.
@@ -135,22 +136,13 @@ public class Production {
         return _first_set;
     }
 
-    protected static int sn = 0;
-
     protected static ProductionItem createInsidePart(String code) {
-        NonTerminal terminal = new NonTerminal("$NT" + sn++, null);
+        NonTerminal terminal = NonTerminal.create("$NT" + NonTerminal.all.size(), null);
+        Production.create(terminal, null, 0, code);
         ProductionItem symbolPart = new ProductionItem(terminal);
-        new Production(terminal, null, 0, code);
         return symbolPart;
     }
 
-    /*--- General Methods ---------------------------------------*/
-    /**
-     * Declare label names as valid variables within the action string
-     *
-     * @param rhs array of RHS parts.
-     * @param code the final action string of the Production.
-     */
     protected static String resolveCode(ProductionItem[] rhs, String code) {
         if (code.indexOf('%') < 0) {
             return code;

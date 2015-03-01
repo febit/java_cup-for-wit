@@ -12,10 +12,10 @@ import java.util.LinkedList;
  */
 public class LalrItemSet {
 
-    protected final HashMap<LalrItem, LalrItem> _all;
+    protected final HashMap<LalrItem, LalrItem> datas;
 
     public LalrItemSet() {
-        this._all = new HashMap<LalrItem, LalrItem>(11);
+        this.datas = new HashMap<LalrItem, LalrItem>(11);
     }
 
     /**
@@ -24,11 +24,11 @@ public class LalrItemSet {
      * @param other indicates set we should copy from.
      */
     public LalrItemSet(LalrItemSet other) {
-        _all = new HashMap<LalrItem, LalrItem>(other._all);
+        datas = new HashMap<LalrItem, LalrItem>(other.datas);
     }
 
-    public Iterable<LalrItem> all() {
-        return _all.values();
+    public Iterable<LalrItem> values() {
+        return datas.values();
     }
 
     /**
@@ -37,8 +37,8 @@ public class LalrItemSet {
      *
      * @param itm the item we are looking for.
      */
-    public LalrItem find(LalrItem itm) {
-        return _all.get(itm);
+    public LalrItem get(LalrItem itm) {
+        return datas.get(itm);
     }
 
     /**
@@ -48,7 +48,7 @@ public class LalrItemSet {
      * @param itm the item being added.
      */
     public LalrItem add(LalrItem itm) {
-        LalrItem other = _all.get(itm);
+        LalrItem other = datas.get(itm);
 
         /* if so, merge this lookahead into the original and leave it */
         if (other != null) {
@@ -57,7 +57,7 @@ public class LalrItemSet {
         } else {
             hashcode = 0;
 
-            _all.put(itm, itm);
+            datas.put(itm, itm);
             return itm;
         }
     }
@@ -80,7 +80,7 @@ public class LalrItemSet {
      */
     public void computeClosure() {
         hashcode = 0;
-        LinkedList<LalrItem> items = new LinkedList<LalrItem>(this._all.values());
+        LinkedList<LalrItem> items = new LinkedList<LalrItem>(this.datas.values());
         while (!items.isEmpty()) {
             LalrItem item = items.removeFirst();
             NonTerminal nt = item.dotBefore();
@@ -121,10 +121,10 @@ public class LalrItemSet {
             return false;
         }
         LalrItemSet set = (LalrItemSet) other;
-        if (_all.size() != set._all.size()) {
+        if (datas.size() != set.datas.size()) {
             return false;
         }
-        return this._all.keySet().containsAll(set._all.keySet());
+        return this.datas.keySet().containsAll(set.datas.keySet());
     }
 
     private int hashcode = 0;
@@ -133,7 +133,7 @@ public class LalrItemSet {
     public int hashCode() {
         if (hashcode == 0) {
             int result = 0;
-            for (LalrItem item : all()) {
+            for (LalrItem item : values()) {
                 result ^= item.hashCode();
             }
             hashcode = result == 0 ? -1 : result;
@@ -145,7 +145,7 @@ public class LalrItemSet {
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append("{\n");
-        for (LalrItem item : all()) {
+        for (LalrItem item : values()) {
             result.append(' ').append(item).append("\n");
         }
         result.append("}");

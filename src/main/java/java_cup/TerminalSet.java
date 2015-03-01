@@ -7,21 +7,21 @@ import java.util.BitSet;
  */
 public class TerminalSet {
 
-    protected BitSet _elements;
+    protected BitSet datas;
 
     public TerminalSet() {
-        _elements = new BitSet(Terminal.size());
+        datas = new BitSet(Terminal.size());
     }
 
     public TerminalSet(TerminalSet other) {
-        _elements = (BitSet) other._elements.clone();
+        datas = (BitSet) other.datas.clone();
     }
 
     /**
      * Determine if the set is empty.
      */
     public boolean empty() {
-        return _elements.isEmpty();
+        return datas.isEmpty();
     }
 
     /**
@@ -30,7 +30,7 @@ public class TerminalSet {
      * @param indx the id of the Terminal in question.
      */
     public boolean contains(int indx) {
-        return _elements.get(indx);
+        return datas.get(indx);
     }
 
     /**
@@ -41,13 +41,13 @@ public class TerminalSet {
     public boolean isSubOf(TerminalSet other) {
 
         /* make a copy of the other set */
-        BitSet copy_other = (BitSet) other._elements.clone();
+        BitSet copy_other = (BitSet) other.datas.clone();
 
         /* and or in */
-        copy_other.or(_elements);
+        copy_other.or(datas);
 
         /* if it hasn't changed, we were a subset */
-        return copy_other.equals(other._elements);
+        return copy_other.equals(other.datas);
     }
 
     /**
@@ -57,9 +57,9 @@ public class TerminalSet {
      * @return true if this changes the set.
      */
     public boolean add(Terminal sym) {
-        boolean result = _elements.get(sym.id);
+        boolean result = datas.get(sym.id);
         if (!result) {
-            _elements.set(sym.id);
+            datas.set(sym.id);
         }
         return result;
     }
@@ -72,13 +72,13 @@ public class TerminalSet {
      */
     public boolean add(TerminalSet other) {
         /* make a copy */
-        BitSet copy = (BitSet) _elements.clone();
+        BitSet copy = (BitSet) datas.clone();
 
         /* or in the other set */
-        _elements.or(other._elements);
+        datas.or(other.datas);
 
         /* changed if we are not the same as the copy */
-        return !_elements.equals(copy);
+        return !datas.equals(copy);
     }
 
     /**
@@ -87,13 +87,13 @@ public class TerminalSet {
      * @param other the other set in question.
      */
     public boolean intersects(TerminalSet other) {
-        BitSet copy = (BitSet) other._elements.clone();
+        BitSet copy = (BitSet) other.datas.clone();
 
         /* xor out our values */
-        copy.xor(this._elements);
+        copy.xor(this.datas);
 
         /* see if its different */
-        return !copy.equals(other._elements);
+        return !copy.equals(other.datas);
     }
 
     @Override
@@ -104,32 +104,29 @@ public class TerminalSet {
         if (!(other instanceof TerminalSet)) {
             return false;
         }
-        return _elements.equals(((TerminalSet) other)._elements);
+        return datas.equals(((TerminalSet) other).datas);
     }
 
     @Override
     public int hashCode() {
-        return this._elements.hashCode();
+        return this.datas.hashCode();
     }
 
     @Override
     public String toString() {
-        String result;
-        boolean comma_flag;
-        result = "{";
-        comma_flag = false;
+        StringBuilder result = new StringBuilder();
+        result.append('{');
+        boolean comma_flag = false;
         for (int t = 0; t < Terminal.size(); t++) {
-            if (_elements.get(t)) {
+            if (datas.get(t)) {
                 if (comma_flag) {
-                    result += ", ";
+                    result.append(',');
                 } else {
                     comma_flag = true;
                 }
-                result += (Terminal.find(t).name);
+                result.append(Terminal.get(t).name);
             }
         }
-        result += "}";
-
-        return result;
+        return result.append('}').toString();
     }
 }

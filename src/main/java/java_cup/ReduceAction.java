@@ -1,7 +1,7 @@
 package java_cup;
 
 /**
- * This class represents a reduce action within the parse table.
+ * This class represents a reduce code within the parse table.
  */
 public class ReduceAction implements Action {
 

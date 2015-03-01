@@ -16,7 +16,13 @@ public class NonTerminal extends symbol {
 
     public static void clear() {
         all.clear();
-        START = new NonTerminal("$START", null);
+        START = create("$START", null);
+    }
+
+    public static NonTerminal create(String name, String type) {
+        NonTerminal nonTerminal = new NonTerminal(all.size(), name, type);
+        all.add(nonTerminal);
+        return nonTerminal;
     }
 
     public final HashSet<Production> productions = new HashSet<Production>(11);
@@ -24,9 +30,8 @@ public class NonTerminal extends symbol {
 
     protected boolean _nullable;
 
-    public NonTerminal(String nm, String tp) {
-        super(all.size(), nm, tp);
-        all.add(this);
+    private NonTerminal(int id, String name, String type) {
+        super(id, name, type);
     }
 
     public boolean nullable() {

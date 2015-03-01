@@ -34,9 +34,9 @@ import java.util.Stack;
  * recognizing the RHS of some Production. To do this it first "backs up" by
  * popping a stack of previously saved states. It pops off the same size of
  * states as are found in the RHS of the Production. This leaves the machine in
- * the same state is was in when the parser first attempted to find the RHS.
- * From this state it makes a transition based on the non-Terminal on the LHS of
- * the Production. This corresponds to placing the parse in a configuration
+ * the same state is was in when the parser first attempted to get the RHS. From
+ * this state it makes a transition based on the non-Terminal on the LHS of the
+ * Production. This corresponds to placing the parse in a configuration
  * equivalent to having replaced iterator the symbols from the the input
  * corresponding to the RHS with the symbol on the LHS.
  *
@@ -53,19 +53,23 @@ public class LalrState {
      */
     protected LalrTransition transitions = null;
 
+    public static LalrState create(LalrItemSet itms) {
+
+        if (all.containsKey(itms)) {
+            throw new InternalException("Attempt to construct a duplicate LALR state");
+        }
+        LalrState state = new LalrState(all.size(), itms);
+        all.put(itms, state);
+        return state;
+    }
+
     /**
      * Constructor for building a state from a set of items.
      *
      * @param itms the set of items that makes up this state.
      */
-    public LalrState(LalrItemSet itms) {
-        if (all.containsKey(itms)) {
-            throw new InternalException("Attempt to construct a duplicate LALR state");
-        }
-
-        this.id = all.size();
-        all.put(itms, this);
-
+    private LalrState(int id, LalrItemSet itms) {
+        this.id = id;
         this.items = itms;
     }
 
@@ -77,7 +81,6 @@ public class LalrState {
         return all.values();
     }
 
-    //Hm Added clear  to clear iterator static fields
     public static void clear() {
         all.clear();
     }
@@ -115,10 +118,6 @@ public class LalrState {
      * lookaheads through the constructed machine using a citerator to
      * propagate_iterator_lookaheads(). This makes use of propagation links
      * constructed during the closure and transition process.
-     *
-     * @param start_prod the start Production of the grammar
-     * @see java_cup.lalr_item_set#compute_closure
-     * @see java_cup.lalr_state#propagate_all_lookaheads
      */
     public static LalrState buildMachine() {
         LalrItemSet kernel;
@@ -137,7 +136,7 @@ public class LalrState {
 
             /* create the closure from that item set */
             startItems.computeClosure();
-            startState = new LalrState(startItems);
+            startState = LalrState.create(startItems);
             workStack.push(startState);
 
             kernels.put(kernel, startState);
@@ -149,7 +148,7 @@ public class LalrState {
 
             /* gather up iterator the symbols that appear before dots */
             HashSet<symbol> outgoing = new HashSet<symbol>();
-            for (LalrItem item : currState.items.all()) {
+            for (LalrItem item : currState.items.values()) {
 
                 /* add the symbol before the dot (if any) to our collection */
                 symbol sym = item.symbolAfterDot;
@@ -167,7 +166,7 @@ public class LalrState {
                 /* gather up shifted versions of iterator the items that have this
                  symbol before the dot */
                 LalrItemSet new_items = new LalrItemSet();
-                for (LalrItem item : currState.items.all()) {
+                for (LalrItem item : currState.items.values()) {
 
                     /* if this is the symbol we are working on now, add to set */
                     if (sym.equals(item.symbolAfterDot)) {
@@ -191,7 +190,7 @@ public class LalrState {
                     new_items.computeClosure();
 
                     /* build the new state */
-                    new_st = new LalrState(new_items);
+                    new_st = LalrState.create(new_items);
 
                     /* add the new state to our work set */
                     workStack.push(new_st);
@@ -200,15 +199,15 @@ public class LalrState {
                     kernels.put(kernel, new_st);
                 } /* otherwise relink propagation to items in existing state */ else {
                     /* walk through the items that have links to the new state */
-                    for (LalrItem fix_itm : linked_items.all()) {
+                    for (LalrItem fix_itm : linked_items.values()) {
 
                         /* look at each propagate link out of that item */
                         for (int l = 0; l < fix_itm.propagateItems.size(); l++) {
                             /* pull out item linked to in the new state */
                             LalrItem new_itm = fix_itm.propagateItems.elementAt(l);
 
-                            /* find corresponding item in the existing state */
-                            LalrItem existing = new_st.items.find(new_itm);
+                            /* get corresponding item in the existing state */
+                            LalrItem existing = new_st.items.get(new_itm);
 
                             /* fix up the item so it points to the existing set */
                             if (existing != null) {
@@ -227,7 +226,7 @@ public class LalrState {
 
         /* propagate complete lookahead sets throughout the states */
         for (LalrState state : all()) {
-            for (LalrItem item : state.items.all()) {
+            for (LalrItem item : state.items.values()) {
                 item.propagateLookaheads(null);
             }
         }
@@ -236,24 +235,24 @@ public class LalrState {
 
     /**
      * Fill in the parse table entries for this state. There are two parse
-     * tables that encode the viable prefix recognition machine, an action table
+     * tables that encode the viable prefix recognition machine, an code table
      * and a reduce-goto table. The rows in each table correspond to states of
-     * the machine. The columns of the action table are indexed by Terminal
+     * the machine. The columns of the code table are indexed by Terminal
      * symbols and correspond to either transitions out of the state (shift
      * entries) or reductions from the state to some previous state saved on the
-     * stack (reduce entries). All entries in the action table that are not
-     * shifts or reduces, represent ERRORs. The reduce-goto table is indexed by
-     * non terminals and represents transitions out of a state on that
+     * stack (reduce entries). All entries in the code table that are not shifts
+     * or reduces, represent ERRORs. The reduce-goto table is indexed by non
+     * terminals and represents transitions out of a state on that
      * non-Terminal.<p>
-     * Conflicts occur if more than one action needs to go in one entry of the
-     * action table (this cannot happen with the reduce-goto table). Conflicts
-     * are resolved by always shifting for shift/reduce conflicts and choosing
-     * the lowest sizeed Production (hence the one that appeared first in the
+     * Conflicts occur if more than one code needs to go in one entry of the
+     * code table (this cannot happen with the reduce-goto table). Conflicts are
+     * resolved by always shifting for shift/reduce conflicts and choosing the
+     * lowest sizeed Production (hence the one that appeared first in the
      * specification) in reduce/reduce conflicts. All conflicts are reported and
      * if more conflicts are detected than were declared by the user, code
      * generation is aborted.
      *
-     * @param act_table the action table to put entries in.
+     * @param act_table the code table to put entries in.
      * @param reduce_table the reduce-goto table to put entries in.
      */
     public void buildTableEntries(Action[][] act_table, LalrState[][] reduce_table) {
@@ -265,7 +264,7 @@ public class LalrState {
         final LalrState[] our_red_row = reduce_table[id];
 
         /* consider each item in our state */
-        for (LalrItem item : items.all()) {
+        for (LalrItem item : items.values()) {
 
             /* if its completed (dot at end) then reduce under the lookahead */
             if (item.dotAtEnd) {
@@ -278,12 +277,12 @@ public class LalrState {
                         continue;
                     }
 
-                    /* if we don't already have an action put this one in */
+                    /* if we don't already have an code put this one in */
                     if (our_act_row[t].type() == Action.ERROR) {
                         our_act_row[t] = act;
                     } else {
                         /* we now have at least one conflict */
-                        Terminal term = Terminal.find(t);
+                        Terminal term = Terminal.get(t);
                         Action otherAction = our_act_row[t];
 
                         /* if the other act was not a shift */
@@ -292,7 +291,7 @@ public class LalrState {
                             /* if we have lower id hence priority, replace it*/
                             if (item.production.id
                                     < ((ReduceAction) otherAction).reduceWith.id) {
-                                /* replace the action */
+                                /* replace the code */
                                 our_act_row[t] = act;
                             }
                         } else {
@@ -320,7 +319,7 @@ public class LalrState {
             } else {
                 Action act = new ShiftAction((trans.state));
 
-                /* if we don't already have an action put this one in */
+                /* if we don't already have an code put this one in */
                 if (our_act_row[symId].type() == Action.ERROR) {
                     our_act_row[symId] = act;
                 } else {
@@ -352,9 +351,9 @@ public class LalrState {
      * table. If the Terminal has a higher precedence, it is shifted. if they
      * have equal precedence, then the associativity of the precedence is used
      * to determine what to put in the table: if the precedence is LEFT
-     * associative, the action is to reduce. if the precedence is RIGHT
-     * associative, the action is to shift. if the precedence is non
-     * associative, then it is a syntax ERROR.
+     * associative, the code is to reduce. if the precedence is RIGHT
+     * associative, the code is to shift. if the precedence is non associative,
+     * then it is a syntax ERROR.
      *
      * @param p the Production
      * @param term_index the id of the lokahead Terminal
@@ -367,7 +366,7 @@ public class LalrState {
             Action[] table_row,
             Action act) {
 
-        Terminal term = Terminal.find(term_index);
+        Terminal term = Terminal.get(term_index);
 
         /* if the Production has a precedence size, it can be fixed */
         if (p.precedence > Assoc.NONE) {
@@ -412,9 +411,9 @@ public class LalrState {
         return false;
     }
 
-    /*  given two actions, and an action type, return the 
-     action of that action type.  give an ERROR if they are of
-     the same action, because that should never have tried
+    /*  given two actions, and an code type, return the 
+     code of that code type.  give an ERROR if they are of
+     the same code, because that should never have tried
      to be fixed 
      
      */
@@ -433,14 +432,14 @@ public class LalrState {
         }
     }
 
-    /* find the shift in the two actions */
+    /* get the shift in the two actions */
     protected Action insert_shift(
             Action a1,
             Action a2) {
         return insert_action(a1, a2, Action.SHIFT);
     }
 
-    /* find the reduce in the two actions */
+    /* get the reduce in the two actions */
     protected Action insert_reduce(
             Action a1,
             Action a2) {
@@ -455,7 +454,7 @@ public class LalrState {
         boolean after_itm;
 
         /* consider each element */
-        for (LalrItem itm : items.all()) {
+        for (LalrItem itm : items.values()) {
 
             /* clear the S/R conflict set for this item */
 
@@ -465,7 +464,7 @@ public class LalrState {
                 after_itm = false;
 
                 /* compare this item against iterator others looking for conflicts */
-                for (LalrItem compare : items.all()) {
+                for (LalrItem compare : items.values()) {
 
                     /* if this is the item, next one is after it */
                     if (itm == compare) {
@@ -479,7 +478,7 @@ public class LalrState {
                             /* only look at reduces after itm */
                             if (after_itm) /* does the comparison item conflict? */ {
                                 if ((compare.lookahead).intersects(itm.lookahead)) /* report a reduce/reduce conflict */ {
-                                    report_reduce_reduce(itm, compare);
+                                    Main.reportReduceReduceConflict(this, itm, compare);
                                 }
                             }
                         }
@@ -488,81 +487,11 @@ public class LalrState {
                 /* report S/R conflicts under iterator the symbols we conflict under */
                 for (int t = 0; t < Terminal.size(); t++) {
                     if (conflict_set.contains(t)) {
-                        report_shift_reduce(itm, t);
+                        Main.reportShiftReduceConflict(this, itm, t);
                     }
                 }
             }
         }
-    }
-
-    /**
-     * Produce a warning message for one reduce/reduce conflict.
-     *
-     * @param itm1 first item in conflict.
-     * @param itm2 second item in conflict.
-     */
-    protected void report_reduce_reduce(LalrItem itm1, LalrItem itm2) {
-        boolean comma_flag = false;
-
-        String message = "*** Reduce/Reduce conflict found in state #" + id + "\n"
-                + "  between " + itm1.toString() + "\n"
-                + "  and     " + itm2.toString() + "\n"
-                + "  under symbols: {";
-        for (int t = 0; t < Terminal.size(); t++) {
-            if ((itm1.lookahead).contains(t) && (itm2.lookahead).contains(t)) {
-                if (comma_flag) {
-                    message += (", ");
-                } else {
-                    comma_flag = true;
-                }
-                message += (Terminal.find(t).name);
-            }
-        }
-        message += "}\n  Resolved in favor of ";
-        if ((itm1.production).id < (itm2.production).id) {
-            message += "the first production.\n";
-        } else {
-            message += "the second production.\n";
-        }
-
-        /* count the conflict */
-        Main.conflictCount++;
-        Main.warning(message);
-    }
-
-    /**
-     * Produce a warning message for one shift/reduce conflict.
-     *
-     * @param red_itm the item with the reduce.
-     * @param conflict_sym the id of the symbol conflict occurs under.
-     */
-    protected void report_shift_reduce(
-            LalrItem red_itm,
-            int conflict_sym) {
-
-        /* Emit top part of message including the reduce item */
-        String message = "*** Shift/Reduce conflict found in state #" + id + "\n"
-                + "  between " + red_itm.toString() + "\n";
-
-        /* find and report on iterator items that shift under our conflict symbol */
-        for (LalrItem itm : items.all()) {
-
-            /* only look if its not the same item and not a reduce */
-            if (itm != red_itm && !itm.dotAtEnd) {
-                /* is it a shift on our conflicting Terminal */
-                symbol shift_sym = itm.symbolAfterDot;
-                if ((shift_sym instanceof Terminal) && shift_sym.id == conflict_sym) {
-                    /* yes, report on it */
-                    message += "  and     " + itm.toString() + "\n";
-                }
-            }
-        }
-        message += "  under symbol " + Terminal.find(conflict_sym).name + "\n"
-                + "  Resolved in favor of shifting.\n";
-
-        /* count the conflict */
-        Main.conflictCount++;
-        Main.warning(message);
     }
 
     @Override
