@@ -10,21 +10,16 @@ import java.util.ArrayList;
  */
 public class Production {
 
-    private static Production create(NonTerminal lhsSymbol, Object[] rhsCandi, int rhsLen, String code, int prec) {
+    public static final ArrayList<Production> all = new ArrayList<Production>();
+
+    public static Production create(NonTerminal lhsSymbol, Object[] rhsCandi, int prec) {
         lhsSymbol.use();
 
-        if (code == null) {
-            code = "";
-        } else {
-            code = code.trim();
-        }
-
-        ProductionItem[] temp = new ProductionItem[rhsLen];
+        ProductionItem[] temp = new ProductionItem[rhsCandi.length];
         int count = 0;
         String lasAction = null;
         boolean calPrec = prec < -1;
-        for (int i = 0; i < rhsLen; i++) {
-            Object part = rhsCandi[i];
+        for (Object part : rhsCandi) {
             if (part instanceof ProductionItem) {
                 if (lasAction != null) {
                     temp[count++] = createInsidePart(lasAction);
@@ -50,32 +45,22 @@ public class Production {
             System.arraycopy(temp, 0, rhs, 0, count);
         }
 
+        String code;
         if (lasAction != null) {
-            code += lasAction.trim();
+            code = resolveCode(rhs, lasAction.trim());
+        } else {
+            code = "return null;";
         }
-
-        code = resolveCode(rhs, code);
         Production prod = new Production(all.size(), new ProductionItem(lhsSymbol), rhs, code, prec);
         all.add(prod);
         lhsSymbol.productions.add(prod);
         return prod;
     }
 
-    public static Production create(NonTerminal lhsSymbol, Object[] rhs, int rhsLen, String code) {
-        return create(lhsSymbol, rhs, rhsLen, code, -2);
+    public static Production create(NonTerminal lhs_sym, Object[] rhs) {
+        return create(lhs_sym, rhs, -2);
     }
 
-    public static Production create(NonTerminal lhs_sym, Object[] rhs_parts, int rhs_l) {
-        return create(lhs_sym, rhs_parts, rhs_l, null, -2);
-    }
-
-    public static Production create(NonTerminal lhs_sym, Object[] rhs, int rhs_l, int prec_num) {
-        return create(lhs_sym, rhs, rhs_l, null, prec_num);
-    }
-
-    public static final ArrayList<Production> all = new ArrayList<Production>();
-
-    //Hm Added clear  to clear iterator static fields
     public static void clear() {
         all.clear();
     }
@@ -138,7 +123,7 @@ public class Production {
 
     protected static ProductionItem createInsidePart(String code) {
         NonTerminal terminal = NonTerminal.create("$NT" + NonTerminal.all.size(), null);
-        Production.create(terminal, null, 0, code);
+        Production.create(terminal, new Object[]{code});
         ProductionItem symbolPart = new ProductionItem(terminal);
         return symbolPart;
     }

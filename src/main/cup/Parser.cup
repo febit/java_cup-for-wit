@@ -52,11 +52,11 @@ varTerm     ::= TERMINAL typeName:type ID[COMMA]:symbolList SEMI
 
 
 preced      ::= PRECEDENCE LEFT ID[COMMA]:symbolList SEMI
-                {: return addPrecedence(Assoc.LEFT, %symbolList%); :}
+                {: addPrecedence(Assoc.LEFT, %symbolList%); return null; :}
                 | PRECEDENCE RIGHT ID[COMMA]:symbolList SEMI
-                {: return addPrecedence(Assoc.RIGHT, %symbolList%); :}
+                {: addPrecedence(Assoc.RIGHT, %symbolList%); return null; :}
                 | PRECEDENCE NONASSOC ID[COMMA]:symbolList SEMI
-                {: return addPrecedence(Assoc.NONASSOC, %symbolList%); :}
+                {: addPrecedence(Assoc.NONASSOC, %symbolList%); return null; :}
                 ;
 
 prodHead    ::= ID:lhs_id {: setLeftHandler(%lhs_id%); return null; :};
@@ -66,23 +66,23 @@ prod        ::= prodHead COLON_COLON_EQUALS rhs[BAR] SEMI
                 {: return null; :};
 
 
-rhs         ::= prodPart[] PERCENT_PREC ID:sym
-                {: createProductionWithPrecedence(%sym%); return null; :}
-                | prodPart[]
-                {: createProduction(); return null; :} 
+rhs         ::= prodPart[]:prodParts PERCENT_PREC ID:sym
+                {: createProduction(%prodParts%, %sym%); return null; :}
+                | prodPart[]:prodParts
+                {: createProduction(%prodParts%, null); return null; :} 
                 ;
 
 
 prodPart    ::= ID:sym labid:labid?
-                {: addRightHandler(%sym%, %labid%); return null; :} 
+                {: return createProductionItem(%sym%, %labid%); :} 
                 | ID:sym labid:labid? QUESTION
-                {: addRightHandler(createOptionableNonTerminalIfAbsent(%sym%), %labid%); return null; :}
+                {: return createProductionItem(createOptionableNonTerminalIfAbsent(%sym%), %labid%); :}
                 | ID:sym LBRACK ID:split? RBRACK labid:labid?
-                {: addRightHandler(createListNonTerminalIfAbsent(%sym%, %split%), %labid%); return null; :} 
+                {: return createProductionItem(createListNonTerminalIfAbsent(%sym%, %split%), %labid%); :} 
                 | ID:sym LBRACK ID:split? RBRACK labid:labid? QUESTION
-                {: addRightHandler(createOptionableNonTerminalIfAbsent(createListNonTerminalIfAbsent(%sym%, %split%)), %labid%); return null; :}
+                {: return createProductionItem(createOptionableNonTerminalIfAbsent(createListNonTerminalIfAbsent(%sym%, %split%).name), %labid%); :}
                 | CODE:code
-                {: addRightActionHandler(%code%); return null; :}
+                {: return %code%; :}
                 ;
 
 labid       ::= COLON robustIdent:labid

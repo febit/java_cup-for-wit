@@ -10,7 +10,7 @@ import java_cup.Main;
 
 /**
  * 
- * @version Mon Mar 02 14:56:54 CST 2015
+ * @version Mon Mar 02 22:11:03 CST 2015
  */
 public class Parser extends AbstractParser {
 
@@ -32,33 +32,25 @@ Main.imports.add((String) myStack.peek(0).value); return null;
             {
 Main.packageName = (String) myStack.peek(0).value; return null;
             }
-            case 43: // prodPart ::= CODE 
+            case 24: // preced ::= PRECEDENCE LEFT ID$$lst$COMMA SEMI 
             {
-addRightActionHandler((String) myStack.peek(0).value); return null;
+addPrecedence(Assoc.LEFT, (java.util.List<String>) myStack.peek(1).value); return null;
             }
-            case 37: // prodPart ::= ID labid$$opt 
+            case 26: // preced ::= PRECEDENCE NONASSOC ID$$lst$COMMA SEMI 
             {
-addRightHandler((String) myStack.peek(1).value, (String) myStack.peek(0).value); return null;
+addPrecedence(Assoc.NONASSOC, (java.util.List<String>) myStack.peek(1).value); return null;
             }
-            case 41: // prodPart ::= ID LBRACK ID$$opt RBRACK labid$$opt 
+            case 25: // preced ::= PRECEDENCE RIGHT ID$$lst$COMMA SEMI 
             {
-addRightHandler(createListNonTerminalIfAbsent((String) myStack.peek(4).value, (String) myStack.peek(2).value), (String) myStack.peek(0).value); return null;
-            }
-            case 38: // prodPart ::= ID labid$$opt QUESTION 
-            {
-addRightHandler(createOptionableNonTerminalIfAbsent((String) myStack.peek(2).value), (String) myStack.peek(1).value); return null;
-            }
-            case 42: // prodPart ::= ID LBRACK ID$$opt RBRACK labid$$opt QUESTION 
-            {
-addRightHandler(createOptionableNonTerminalIfAbsent(createListNonTerminalIfAbsent((String) myStack.peek(5).value, (String) myStack.peek(3).value)), (String) myStack.peek(1).value); return null;
+addPrecedence(Assoc.RIGHT, (java.util.List<String>) myStack.peek(1).value); return null;
             }
             case 34: // rhs ::= prodPart$$lst$ 
             {
-createProduction(); return null;
+createProduction((java.util.List<Object>) myStack.peek(0).value, null); return null;
             }
             case 33: // rhs ::= prodPart$$lst$ PERCENT_PREC ID 
             {
-createProductionWithPrecedence((String) myStack.peek(0).value); return null;
+createProduction((java.util.List<Object>) myStack.peek(2).value, (String) myStack.peek(0).value); return null;
             }
             case 22: // varTerm ::= NONTERMINAL typeName ID$$lst$COMMA SEMI 
             {
@@ -123,17 +115,20 @@ return ((String) myStack.peek(2).value) + ((String) myStack.peek(0).value);
 return ((String) myStack.peek(2).value).concat("[]");
             case 53: // typeName ::= robustIdent LT typearglist GT 
 return ((String) myStack.peek(3).value) + '<' + ((String) myStack.peek(1).value) +'>';
-            case 24: // preced ::= PRECEDENCE LEFT ID$$lst$COMMA SEMI 
-return addPrecedence(Assoc.LEFT, (java.util.List<String>) myStack.peek(1).value);
-            case 26: // preced ::= PRECEDENCE NONASSOC ID$$lst$COMMA SEMI 
-return addPrecedence(Assoc.NONASSOC, (java.util.List<String>) myStack.peek(1).value);
-            case 25: // preced ::= PRECEDENCE RIGHT ID$$lst$COMMA SEMI 
-return addPrecedence(Assoc.RIGHT, (java.util.List<String>) myStack.peek(1).value);
+            case 37: // prodPart ::= ID labid$$opt 
+return createProductionItem((String) myStack.peek(1).value, (String) myStack.peek(0).value);
+            case 41: // prodPart ::= ID LBRACK ID$$opt RBRACK labid$$opt 
+return createProductionItem(createListNonTerminalIfAbsent((String) myStack.peek(4).value, (String) myStack.peek(2).value), (String) myStack.peek(0).value);
+            case 38: // prodPart ::= ID labid$$opt QUESTION 
+return createProductionItem(createOptionableNonTerminalIfAbsent((String) myStack.peek(2).value), (String) myStack.peek(1).value);
+            case 42: // prodPart ::= ID LBRACK ID$$opt RBRACK labid$$opt QUESTION 
+return createProductionItem(createOptionableNonTerminalIfAbsent(createListNonTerminalIfAbsent((String) myStack.peek(5).value, (String) myStack.peek(3).value).name), (String) myStack.peek(1).value);
             case 2: // pkg$$opt ::= pkg 
             case 6: // imports$$lst$$$opt ::= imports$$lst$ 
             case 12: // preced$$lst$$$opt ::= preced$$lst$ 
             case 36: // labid$$opt ::= labid 
             case 40: // ID$$opt ::= ID 
+            case 43: // prodPart ::= CODE 
             case 44: // labid ::= COLON robustIdent 
             case 45: // typearglist ::= typearguement 
             case 47: // typearguement ::= typeName 
