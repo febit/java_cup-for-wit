@@ -34,7 +34,7 @@ abstract class AbstractParser extends BaseParser {
         parse(new Lexer(new InputStreamReader(System.in)));
     }
 
-    private void new_rhs() {
+    private void newRhs() {
         rightSymbolPoolCount = 0;
     }
 
@@ -57,6 +57,38 @@ abstract class AbstractParser extends BaseParser {
         }
     }
 
+    String createListNonTerminalIfAbsent(String compSymName, String split) {
+        final String name = compSymName + "$$lst$" + (split != null ? split : "");
+        if (!this.symbols.containsKey(name)) {
+            //create NonTerminal
+            symbol compSym = getSymbol(compSymName);
+            NonTerminal nt = NonTerminal.create(name, "java.util.List<" + compSym.type + ">");
+            declearSymbol(nt);
+            //create Production for nt
+            Production.create(nt, new Object[]{new ProductionItem(compSym)}, 1, "java.util.List list = new java.util.ArrayList(); list.add(myStack.peek(0).value); return list;");
+            if (split != null) {
+                Production.create(nt, new Object[]{new ProductionItem(nt), new ProductionItem(getSymbol(split)), new ProductionItem(compSym)}, 3, "java.util.List list = (java.util.List) (myStack.peek(2).value); list.add(myStack.peek(0).value); return list;");
+            } else {
+                Production.create(nt, new Object[]{new ProductionItem(nt), new ProductionItem(compSym)}, 2, "java.util.List list = (java.util.List) (myStack.peek(1).value); list.add(myStack.peek(0).value); return list;");
+            }
+        }
+        return name;
+    }
+
+    String createOptionableNonTerminalIfAbsent(String compSymName) {
+        final String name = compSymName + "$$opt";
+        if (!this.symbols.containsKey(name)) {
+            //create NonTerminal
+            symbol compSym = getSymbol(compSymName);
+            NonTerminal nt = NonTerminal.create(name, compSym.type);
+            declearSymbol(nt);
+            //create Production for nt
+            Production.create(nt, null, 0, "return null;");
+            Production.create(nt, new Object[]{new ProductionItem(compSym)}, 1, "return myStack.peek(0).value;");
+        }
+        return name;
+    }
+
     void declearNonTerminals(List<String> names, String type) {
         for (String name : names) {
             declearSymbol(NonTerminal.create(name, type));
@@ -74,7 +106,7 @@ abstract class AbstractParser extends BaseParser {
             registStartNonTerminal(name);
         }
         leftSymbol = getNonTerminal(name);
-        new_rhs();
+        newRhs();
     }
 
     private void pushRightHandler(Object part) {
@@ -118,24 +150,24 @@ abstract class AbstractParser extends BaseParser {
     private void registStartNonTerminal(String name) {
         startSymbol = getNonTerminal(name);
         // build start Production
-        new_rhs();
+        newRhs();
         addRightHandler(startSymbol, null);
         addRightHandler(Terminal.EOF, null);
         addRightActionHandler("return myStack.peek(1).value;");
         Main.startProduction = Production.create(NonTerminal.START, rightSymbolPool, rightSymbolPoolCount);
-        new_rhs();
+        newRhs();
     }
 
     void createProductionWithPrecedence(String termName) {
         Terminal terminal = getTerminal(termName);
         terminal.use();
         Production.create(leftSymbol, rightSymbolPool, rightSymbolPoolCount, terminal.precedence());
-        new_rhs();
+        newRhs();
     }
 
     void createProduction() {
         Production.create(leftSymbol, rightSymbolPool, rightSymbolPoolCount);
-        new_rhs();
+        newRhs();
     }
 
     protected Object addPrecedence(int p, List<String> names) {
