@@ -214,7 +214,9 @@ public class Main {
 
         System.err.println("  Building state machine...");
         startState = LalrState.buildMachine();
-        assert startState.id == 0;
+        if (startState.id != 0) {
+            throw new InternalException("Start state must be zero!");
+        }
 
         System.err.println("  Filling in tables...");
 
@@ -333,35 +335,40 @@ public class Main {
         out.println("public class " + Main.parserClassName + " extends AbstractParser {");
         out.println();
 
-        assert startProduction.id == 0;
-        assert Terminal.EOF.id == 0;
-        assert Terminal.ERROR.id == 1;
-
         out.println("    @SuppressWarnings(\"unchecked\")");
         out.println("    final Object doAction(int actionId)" + (Main.actionExceptionClassName != null ? (" throws " + Main.actionExceptionClassName) : "") + " {");
 
         out.println("        final Stack<Symbol> myStack = this.symbolStack;");
         out.println();
         out.println("        switch (actionId){");
-        for (ProductionCodeWrap codeWrap : resolveProductionCodeWraps()) {
-            out.println("            case " + codeWrap.id + ": // " + codeWrap.remark);
-            if (codeWrap.useNext == false) {
-                boolean needWrap = !codeWrap.caseBody.trim().startsWith("return ");
-                if (needWrap) {
-                    out.println("            {");
-                }
-                out.println(codeWrap.caseBody);
-                if (needWrap) {
-                    out.println("            }");
-                }
+
+        final ArrayList<Production> prods = new ArrayList<Production>(Production.all);
+        Collections.sort(prods);
+        String lastCode = null;
+        for (Production prod : prods) {
+            if (lastCode != null && !lastCode.equals(prod.code)) {
+                emitParserActionCaseCode(out, lastCode);
             }
+            lastCode = prod.code;
+            out.println("            case " + prod.id + ": // " + prod);
         }
+        emitParserActionCaseCode(out, lastCode);
         out.println("            default:");
         out.println("                throw new RuntimeException(\"Invalid action id.\");");
         out.println("        }");
-
         out.println("    }");
         out.println("}");
+    }
+
+    private static void emitParserActionCaseCode(PrintWriter out, String code) {
+        boolean needWrap = !code.startsWith("return ");
+        if (needWrap) {
+            out.println("            {");
+        }
+        out.println(code);
+        if (needWrap) {
+            out.println("            }");
+        }
     }
 
     public static void emitTokens(PrintWriter out) {
@@ -379,57 +386,6 @@ public class Main {
         }
         out.println("}");
         out.println();
-    }
-
-    private static class ProductionCodeWrap implements Comparable<ProductionCodeWrap> {
-
-        final int id;
-        final String remark;
-        final String caseBody;
-        boolean useNext = false;
-
-        ProductionCodeWrap(int id, String remark, String caseBody) {
-            this.id = id;
-            this.remark = remark;
-            this.caseBody = caseBody;
-        }
-
-        public int compareTo(ProductionCodeWrap o) {
-            int result;
-            if ((result = this.caseBody.compareTo(o.caseBody)) == 0) {
-                result = this.id - o.id;
-            }
-            return result;
-        }
-    }
-
-    private static ArrayList<ProductionCodeWrap> resolveProductionCodeWraps() {
-        final ArrayList<ProductionCodeWrap> list = new ArrayList<ProductionCodeWrap>(Production.all.size());
-        for (Production prod : Production.all) {
-            StringBuilder buffer = new StringBuilder();
-            if (prod == startProduction) {
-                buffer.append("                this.goonParse = false;\n");
-            }
-            if (prod.code != null) {
-                buffer.append(prod.code);
-            }
-            if (buffer.indexOf("return ") < 0) {
-                throw new RuntimeException("Production must has a 'return':" + prod);
-            }
-            list.add(new ProductionCodeWrap((prod.id), prod.toString(), buffer.toString()));
-        }
-
-        //Sort and check
-        Collections.sort(list);
-        ProductionCodeWrap preCodeWrap = list.get(0);
-        for (int i = 1, len = list.size(); i < len; i++) {
-            ProductionCodeWrap currentCodeWrap = list.get(i);
-            if (preCodeWrap.caseBody.equals(currentCodeWrap.caseBody)) {
-                preCodeWrap.useNext = true;
-            }
-            preCodeWrap = currentCodeWrap;
-        }
-        return list;
     }
 
     private static void emitPackage(PrintWriter out) {

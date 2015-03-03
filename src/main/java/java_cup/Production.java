@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * the RHS of the Production, it may shrink. As a result a separate length is
  * always maintained to indicate how much of the RHS array is still valid.
  */
-public class Production {
+public class Production implements Comparable<Production> {
 
     public static final ArrayList<Production> all = new ArrayList<Production>();
 
@@ -37,9 +37,9 @@ public class Production {
                 prec = (Integer) part;
             } else {
                 if (lasAction == null) {
-                    lasAction = (String) part;
+                    lasAction = ((String) part).trim();
                 } else {
-                    lasAction += (String) part;
+                    lasAction += ((String) part).trim();
                 }
             }
         }
@@ -55,7 +55,14 @@ public class Production {
         } else {
             code = "return null;";
         }
+        code = code.trim();
         Production prod = new Production(all.size(), new ProductionItem(lhsSymbol), rhs, code, prec);
+
+        //XXX check if have a return statement
+        if (!code.contains("return ")) {
+            throw new InternalException("Production must has a 'return':" + prod);
+        }
+
         all.add(prod);
         lhsSymbol.productions.add(prod);
         return prod;
@@ -119,6 +126,14 @@ public class Production {
      */
     public TerminalSet first_set() {
         return _first_set;
+    }
+
+    public int compareTo(Production o) {
+        int result;
+        if ((result = this.code.compareTo(o.code)) == 0) {
+            result = this.id - o.id;
+        }
+        return result;
     }
 
     protected static ProductionItem createInsidePart(String code) {

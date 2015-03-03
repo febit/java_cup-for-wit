@@ -7,12 +7,11 @@ package java_cup.core;
 
 import java_cup.Assoc;
 import java_cup.Main;
-import java.util.List;
 import java_cup.symbol;
 
 /**
  * 
- * @version Tue Mar 03 11:56:26 CST 2015
+ * @version Tue Mar 03 13:49:38 CST 2015
  */
 public class Parser extends AbstractParser {
 
@@ -21,11 +20,6 @@ public class Parser extends AbstractParser {
         final Stack<Symbol> myStack = this.symbolStack;
 
         switch (actionId){
-            case 21: // $START ::= start EOF 
-            {
-                this.goonParse = false;
-return myStack.peek(1).value;
-            }
             case 3: // $IPNT_1 ::= IMPORT CLASSNAME 
             {
 Main.imports.add((String) myStack.peek(0).value); return null;
@@ -144,6 +138,10 @@ return myStack.peek(0).value;
             case 32: // ID$$opt ::= 
             case 37: // labid$$opt ::= 
 return null;
+            case 21: // $START ::= start EOF 
+            {
+this.goonParse = false; return myStack.peek(1).value;
+            }
             default:
                 throw new RuntimeException("Invalid action id.");
         }

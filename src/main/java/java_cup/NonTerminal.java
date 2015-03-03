@@ -12,11 +12,9 @@ import java.util.HashSet;
 public class NonTerminal extends symbol {
 
     public static final ArrayList<NonTerminal> all = new ArrayList<NonTerminal>();
-    public static NonTerminal START;
 
     public static void clear() {
         all.clear();
-        START = create("$START", null);
     }
 
     public static NonTerminal create(String name, String type) {

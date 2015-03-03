@@ -3,7 +3,6 @@ package java_cup.core;
 
 import java_cup.Assoc;
 import java_cup.Main;
-import java.util.List;
 import java_cup.symbol;
 
 terminal
@@ -15,8 +14,7 @@ terminal
 
 terminal String ID, CODE, CLASSNAME;
 
-nonterminal
-            start, varTerm, preced, prodPart;
+nonterminal start, varTerm, preced, prodPart;
 
 nonterminal symbol prodPartSym;
 nonterminal String  typeName, robustIdent, labid, typearglist, typearguement;

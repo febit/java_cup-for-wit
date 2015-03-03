@@ -8,6 +8,7 @@ import java.util.Map;
 import java_cup.InternalException;
 import java_cup.Main;
 import java_cup.NonTerminal;
+import static java_cup.NonTerminal.create;
 import java_cup.Production;
 import java_cup.ProductionItem;
 import java_cup.Terminal;
@@ -27,7 +28,6 @@ abstract class AbstractParser extends BaseParser {
 
     public void parse() throws Exception {
         declearSymbol(Terminal.ERROR);
-        declearSymbol(NonTerminal.START);
         parse(new Lexer(new InputStreamReader(System.in)));
     }
 
@@ -149,8 +149,10 @@ abstract class AbstractParser extends BaseParser {
     private void registStartNonTerminal(String name) {
         startSymbol = getNonTerminal(name);
         // build start Production
-        Main.startProduction = Production.create(NonTerminal.START,
-                new Object[]{createProductionItem(startSymbol, null), createProductionItem(Terminal.EOF, null), "return myStack.peek(1).value;"});
+        NonTerminal startNonTerminal = NonTerminal.create("$START", null);
+        declearSymbol(startNonTerminal);
+        Main.startProduction = Production.create(startNonTerminal,
+                new Object[]{createProductionItem(startSymbol, null), createProductionItem(Terminal.EOF, null), "this.goonParse = false; return myStack.peek(1).value;"});
     }
 
     void createProduction(String lhs, List<List<Object>> rhses) {
