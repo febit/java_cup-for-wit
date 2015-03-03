@@ -12,13 +12,14 @@ public class Production {
 
     public static final ArrayList<Production> all = new ArrayList<Production>();
 
-    public static Production create(NonTerminal lhsSymbol, Object[] rhsCandi, int prec) {
+    public static Production create(NonTerminal lhsSymbol, Object[] rhsCandi) {
         lhsSymbol.use();
 
         ProductionItem[] temp = new ProductionItem[rhsCandi.length];
         int count = 0;
         String lasAction = null;
-        boolean calPrec = prec < -1;
+        int prec = -1;
+        boolean calPrec = true;
         for (Object part : rhsCandi) {
             if (part instanceof ProductionItem) {
                 if (lasAction != null) {
@@ -31,6 +32,9 @@ public class Production {
                 if (calPrec && sym instanceof Terminal) {
                     prec = ((Terminal) sym).precedence();
                 }
+            } else if (part instanceof Integer) {
+                calPrec = false;
+                prec = (Integer) part;
             } else {
                 if (lasAction == null) {
                     lasAction = (String) part;
@@ -55,10 +59,6 @@ public class Production {
         all.add(prod);
         lhsSymbol.productions.add(prod);
         return prod;
-    }
-
-    public static Production create(NonTerminal lhs_sym, Object[] rhs) {
-        return create(lhs_sym, rhs, -2);
     }
 
     public static void clear() {

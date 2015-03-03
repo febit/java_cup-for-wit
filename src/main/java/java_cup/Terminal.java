@@ -16,6 +16,7 @@ public class Terminal extends symbol {
         all.clear();
         EOF = Terminal.create("EOF", null);
         ERROR = Terminal.create("ERROR", null);
+        ERROR.use();
     }
 
     public static Terminal get(int indx) {

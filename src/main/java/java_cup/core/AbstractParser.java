@@ -4,6 +4,7 @@ package java_cup.core;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java_cup.InternalException;
 import java_cup.Main;
 import java_cup.NonTerminal;
@@ -19,9 +20,9 @@ import java_cup.symbol;
 abstract class AbstractParser extends BaseParser {
 
     private final HashMap<String, symbol> symbols = new HashMap();
+    private final Map<String, Integer> insideProdNTKeyMap = new HashMap();
 
     private NonTerminal startSymbol;
-    private NonTerminal leftSymbol;
     private int _cur_prec = 0;
 
     public void parse() throws Exception {
@@ -45,12 +46,11 @@ abstract class AbstractParser extends BaseParser {
         }
     }
 
-    NonTerminal createListNonTerminalIfAbsent(String compSymName, String split) {
-        final String name = compSymName + "$$lst$" + (split != null ? split : "");
+    NonTerminal createListNonTerminalIfAbsent(final symbol compSym, final String split) {
+        final String name = compSym.name + "$$lst$" + (split != null ? split : "");
         NonTerminal result = (NonTerminal) this.symbols.get(name);
         if (result == null) {
             //create NonTerminal
-            symbol compSym = getSymbol(compSymName);
             result = NonTerminal.create(name, "java.util.List<" + compSym.type + ">");
             declearSymbol(result);
             //create Production for nt
@@ -64,17 +64,42 @@ abstract class AbstractParser extends BaseParser {
         return result;
     }
 
-    NonTerminal createOptionableNonTerminalIfAbsent(String compSymName) {
-        final String name = compSymName + "$$opt";
+    NonTerminal createOptionableNonTerminalIfAbsent(final symbol compSym) {
+        final String name = compSym.name + "$$opt";
         NonTerminal result = (NonTerminal) this.symbols.get(name);
         if (result == null) {
             //create NonTerminal
-            symbol compSym = getSymbol(compSymName);
             result = NonTerminal.create(name, compSym.type);
             declearSymbol(result);
             //create Production for nt
             Production.create(result, new Object[]{"return null;"});
             Production.create(result, new Object[]{new ProductionItem(compSym), "return myStack.peek(0).value;"});
+        }
+        return result;
+    }
+
+    NonTerminal createInsideProductionNonTerminalIfAbsent(final List<List<Object>> rhses) {
+        StringBuilder buffer = new StringBuilder();
+        for (List rhs : rhses) {
+            for (Object rh : rhs) {
+                buffer.append(rh).append(',');
+            }
+            buffer.append('|');
+        }
+        String sn = buffer.toString();
+        Integer index = insideProdNTKeyMap.get(sn);
+        if (index == null) {
+            index = insideProdNTKeyMap.size();
+            insideProdNTKeyMap.put(sn, index);
+        }
+        final String name = "$IPNT_" + index;
+        NonTerminal result = (NonTerminal) this.symbols.get(name);
+        if (result == null) {
+            result = NonTerminal.create(name, null);
+            declearSymbol(result);
+            for (List rhs : rhses) {
+                Production.create(result, rhs.toArray());
+            }
         }
         return result;
     }
@@ -89,13 +114,6 @@ abstract class AbstractParser extends BaseParser {
         for (String name : names) {
             declearSymbol(Terminal.create(name, type));
         }
-    }
-
-    void setLeftHandler(String name) {
-        if (startSymbol == null) {
-            registStartNonTerminal(name);
-        }
-        leftSymbol = getNonTerminal(name);
     }
 
     symbol getSymbol(String name) {
@@ -135,14 +153,20 @@ abstract class AbstractParser extends BaseParser {
                 new Object[]{createProductionItem(startSymbol, null), createProductionItem(Terminal.EOF, null), "return myStack.peek(1).value;"});
     }
 
-    void createProduction(List parts, String termName) {
-        if (termName != null) {
-            Terminal terminal = getTerminal(termName);
-            terminal.use();
-            Production.create(leftSymbol, parts.toArray(), terminal.precedence());
-        } else {
-            Production.create(leftSymbol, parts.toArray());
+    void createProduction(String lhs, List<List<Object>> rhses) {
+        if (startSymbol == null) {
+            registStartNonTerminal(lhs);
         }
+        NonTerminal leftSymbol = getNonTerminal(lhs);
+        for (List rhs : rhses) {
+            Production.create(leftSymbol, rhs.toArray());
+        }
+    }
+
+    int getTerminalPrecedence(String termName) {
+        Terminal terminal = getTerminal(termName);
+        terminal.use();
+        return terminal.precedence();
     }
 
     void addPrecedence(int p, List<String> names) {

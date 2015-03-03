@@ -3,41 +3,29 @@ package java_cup.core;
 
 import java_cup.Assoc;
 import java_cup.Main;
-
+import java.util.List;
+import java_cup.symbol;
 
 terminal
             PACKAGE, IMPORT, SUPER, EXTENDS,
             TERMINAL, NONTERMINAL, PRECEDENCE, NONASSOC, PERCENT_PREC,
             SEMI, COMMA, COLON, COLON_COLON_EQUALS, BAR,
-            LEFT, RIGHT, LBRACK, RBRACK, GT, LT,
+            LEFT, RIGHT, LBRACK, RBRACK, LPAREN, RPAREN, GT, LT,
             QUESTION;
 
 terminal String ID, CODE, CLASSNAME;
 
 nonterminal
-            start, pkg, imports,
-            varTerm, 
-            prod, prodHead, 
-            prodPart, rhs,
-            preced;
+            start, varTerm, preced, prodPart;
 
+nonterminal symbol prodPartSym;
 nonterminal String  typeName, robustIdent, labid, typearglist, typearguement;
 
-
-start       ::= pkg?
-                imports[] ?
+start       ::= (PACKAGE CLASSNAME:name {: Main.packageName = %name%; return null; :}) ?
+                (IMPORT CLASSNAME:name {: Main.imports.add(%name%); return null; :})[] ?
                 varTerm[]
                 preced[] ?
-                prod[]
-                {: return null; :}
-                ;
-
-pkg         ::= PACKAGE CLASSNAME:name
-                {: Main.packageName = %name%; return null; :}
-                ;
-
-imports     ::= IMPORT CLASSNAME:name
-                {: Main.imports.add(%name%); return null; :}
+                (ID:lhs COLON_COLON_EQUALS prodPart[][BAR]:rhses SEMI {: createProduction(%lhs%, %rhses%); return null; :})[]
                 ;
 
 varTerm     ::= TERMINAL typeName:type ID[COMMA]:symbolList SEMI
@@ -59,31 +47,26 @@ preced      ::= PRECEDENCE LEFT ID[COMMA]:symbolList SEMI
                 {: addPrecedence(Assoc.NONASSOC, %symbolList%); return null; :}
                 ;
 
-prodHead    ::= ID:lhs_id {: setLeftHandler(%lhs_id%); return null; :};
 
-
-prod        ::= prodHead COLON_COLON_EQUALS rhs[BAR] SEMI
-                {: return null; :};
-
-
-rhs         ::= prodPart[]:prodParts PERCENT_PREC ID:sym
-                {: createProduction(%prodParts%, %sym%); return null; :}
-                | prodPart[]:prodParts
-                {: createProduction(%prodParts%, null); return null; :} 
+prodPartSym ::= ID:sym
+                {: return getSymbol(%sym%); :}
+                | LPAREN prodPart[][BAR]:rhses RPAREN
+                {: return createInsideProductionNonTerminalIfAbsent(%rhses%); :}
+                | prodPartSym:sym LBRACK ID:split? RBRACK
+                {: return createListNonTerminalIfAbsent(%sym%, %split%); :}
                 ;
 
 
-prodPart    ::= ID:sym labid:labid?
+prodPart    ::= prodPartSym:sym labid:labid?
                 {: return createProductionItem(%sym%, %labid%); :} 
-                | ID:sym labid:labid? QUESTION
+                | prodPartSym:sym labid:labid? QUESTION
                 {: return createProductionItem(createOptionableNonTerminalIfAbsent(%sym%), %labid%); :}
-                | ID:sym LBRACK ID:split? RBRACK labid:labid?
-                {: return createProductionItem(createListNonTerminalIfAbsent(%sym%, %split%), %labid%); :} 
-                | ID:sym LBRACK ID:split? RBRACK labid:labid? QUESTION
-                {: return createProductionItem(createOptionableNonTerminalIfAbsent(createListNonTerminalIfAbsent(%sym%, %split%).name), %labid%); :}
                 | CODE:code
                 {: return %code%; :}
+                | PERCENT_PREC ID:sym
+                {: return getTerminalPrecedence(%sym%); :}
                 ;
+
 
 labid       ::= COLON robustIdent:labid
                 {: return %labid%; :}
@@ -93,7 +76,7 @@ labid       ::= COLON robustIdent:labid
 typearglist ::= typearguement:arg
                 {: return %arg%; :}
                 | typearglist:args COMMA typearguement:arg
-                {: return (%args%) + (%arg%); :}
+                {: return (%args%) + ',' + (%arg%); :}
                 ;
 
 typearguement ::=

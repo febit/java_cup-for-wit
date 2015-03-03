@@ -72,6 +72,8 @@ ident = ([:jletter:] | "_" ) ([:jletterdigit:] | [:jletter:] | "_" )*
   "|"           { return symbol(Tokens.BAR);                    }
   "["           { return symbol(Tokens.LBRACK);              }
   "]"           { return symbol(Tokens.RBRACK);              }
+  "("           { return symbol(Tokens.LPAREN); }
+  ")"           { return symbol(Tokens.RPAREN); }
   ":"           { return symbol(Tokens.COLON);                }
   "::="         { return symbol(Tokens.COLON_COLON_EQUALS);   }
   "%prec"       { return symbol(Tokens.PERCENT_PREC);  }
