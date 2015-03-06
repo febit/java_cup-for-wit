@@ -11,7 +11,7 @@ import java_cup.symbol;
 
 /**
  * 
- * @version Tue Mar 03 13:49:38 CST 2015
+ * @version Fri Mar 06 23:34:45 CST 2015
  */
 public class Parser extends AbstractParser {
 
@@ -83,29 +83,31 @@ java.util.List list = (java.util.List) (myStack.peek(2).value); list.add(myStack
             {
 java.util.List list = new java.util.ArrayList(); list.add(myStack.peek(0).value); return list;
             }
-            case 47: // typearguement ::= QUESTION 
+            case 48: // typearguement ::= QUESTION 
 return " ? ";
-            case 48: // typearguement ::= QUESTION EXTENDS robustIdent 
+            case 49: // typearguement ::= QUESTION EXTENDS robustIdent 
 return " ? extends " + ((String) myStack.peek(0).value);
-            case 49: // typearguement ::= QUESTION SUPER robustIdent 
+            case 50: // typearguement ::= QUESTION SUPER robustIdent 
 return " ? super " + ((String) myStack.peek(0).value);
-            case 57: // robustIdent ::= LEFT 
+            case 44: // labid ::= COLON DOLLAR 
+return "$";
+            case 58: // robustIdent ::= LEFT 
 return "left";
-            case 59: // robustIdent ::= NONASSOC 
+            case 60: // robustIdent ::= NONASSOC 
 return "nonassoc";
-            case 55: // robustIdent ::= NONTERMINAL 
+            case 56: // robustIdent ::= NONTERMINAL 
 return "nonterminal";
-            case 56: // robustIdent ::= PRECEDENCE 
+            case 57: // robustIdent ::= PRECEDENCE 
 return "precedence";
-            case 58: // robustIdent ::= RIGHT 
+            case 59: // robustIdent ::= RIGHT 
 return "right";
-            case 54: // robustIdent ::= TERMINAL 
+            case 55: // robustIdent ::= TERMINAL 
 return "terminal";
-            case 45: // typearglist ::= typearglist COMMA typearguement 
+            case 46: // typearglist ::= typearglist COMMA typearguement 
 return ((String) myStack.peek(2).value) + ',' + ((String) myStack.peek(0).value);
-            case 51: // typeName ::= typeName LBRACK RBRACK 
+            case 52: // typeName ::= typeName LBRACK RBRACK 
 return ((String) myStack.peek(2).value).concat("[]");
-            case 52: // typeName ::= robustIdent LT typearglist GT 
+            case 53: // typeName ::= robustIdent LT typearglist GT 
 return ((String) myStack.peek(3).value) + '<' + ((String) myStack.peek(1).value) +'>';
             case 35: // prodPartSym ::= LPAREN prodPart$$lst$$$lst$BAR RPAREN 
 return createInsideProductionNonTerminalIfAbsent((java.util.List<java.util.List<Object>>) myStack.peek(1).value);
@@ -126,10 +128,10 @@ return getTerminalPrecedence((String) myStack.peek(0).value);
             case 38: // labid$$opt ::= labid 
             case 41: // prodPart ::= CODE 
             case 43: // labid ::= COLON robustIdent 
-            case 44: // typearglist ::= typearguement 
-            case 46: // typearguement ::= typeName 
-            case 50: // typeName ::= robustIdent 
-            case 53: // robustIdent ::= ID 
+            case 45: // typearglist ::= typearguement 
+            case 47: // typearguement ::= typeName 
+            case 51: // typeName ::= robustIdent 
+            case 54: // robustIdent ::= ID 
 return myStack.peek(0).value;
             case 1: // $IPNT_0$$opt ::= 
             case 6: // $IPNT_1$$lst$$$opt ::= 

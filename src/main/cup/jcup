@@ -1,7 +1,7 @@
 #!/bin/bash
 cd $(dirname $0)
 
-$JAVA_HOME/bin/java -Dfile.encoding=UTF-8 -jar java_cup_webit-20150303.jar -destdir ../java/java_cup/core -destresdir ../resources/java_cup/core Parser.cup
+$JAVA_HOME/bin/java -Dfile.encoding=UTF-8 -jar java_cup_webit-20150306.jar -destdir ../java/java_cup/core -destresdir ../resources/java_cup/core Parser.cup
 
 echo 'Press any to exit...'
 read -n 1

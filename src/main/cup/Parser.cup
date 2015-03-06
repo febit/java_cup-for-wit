@@ -6,11 +6,11 @@ import java_cup.Main;
 import java_cup.symbol;
 
 terminal
-            PACKAGE, IMPORT, SUPER, EXTENDS,
+            PACKAGE, IMPORT, SUPER, EXTENDS, 
             TERMINAL, NONTERMINAL, PRECEDENCE, NONASSOC, PERCENT_PREC,
             SEMI, COMMA, COLON, COLON_COLON_EQUALS, BAR,
             LEFT, RIGHT, LBRACK, RBRACK, LPAREN, RPAREN, GT, LT,
-            QUESTION;
+            QUESTION, DOLLAR;
 
 terminal String ID, CODE, CLASSNAME;
 
@@ -59,27 +59,25 @@ prodPart    ::= prodPartSym:sym labid:labid?
                 {: return createProductionItem(%sym%, %labid%); :} 
                 | prodPartSym:sym labid:labid? QUESTION
                 {: return createProductionItem(createOptionableNonTerminalIfAbsent(%sym%), %labid%); :}
-                | CODE:code
-                {: return %code%; :}
+                | CODE:$
                 | PERCENT_PREC ID:sym
                 {: return getTerminalPrecedence(%sym%); :}
                 ;
 
 
-labid       ::= COLON robustIdent:labid
-                {: return %labid%; :}
+labid       ::= COLON robustIdent:$
+                |COLON DOLLAR
+                {: return "$"; :}
                 ;
 
 
-typearglist ::= typearguement:arg
-                {: return %arg%; :}
+typearglist ::= typearguement:$
                 | typearglist:args COMMA typearguement:arg
                 {: return (%args%) + ',' + (%arg%); :}
                 ;
 
 typearguement ::=
-                typeName:id
-                {: return %id%;  :}
+                typeName:$
                 | QUESTION
                 {: return " ? "; :}
                 | QUESTION EXTENDS robustIdent:id
@@ -88,8 +86,7 @@ typearguement ::=
                 {: return " ? super " + (%id%); :}
                 ;
 
-typeName    ::= robustIdent:id
-                {: return %id%; :}
+typeName    ::= robustIdent:$
                 | typeName:id LBRACK RBRACK
                 {: return (%id%).concat("[]"); :}
                 | robustIdent:id LT typearglist:args GT
@@ -97,7 +94,7 @@ typeName    ::= robustIdent:id
                 ;
 
 
-robustIdent ::= ID:the_id	{: return %the_id%; :}
+robustIdent ::= ID:$
                 | TERMINAL	{: return "terminal"; :}
                 | NONTERMINAL	{: return "nonterminal"; :}
                 | PRECEDENCE	{: return "precedence"; :}

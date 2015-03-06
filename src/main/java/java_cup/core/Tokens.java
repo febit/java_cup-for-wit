@@ -33,9 +33,10 @@ public interface Tokens {
     int GT = 22;
     int LT = 23;
     int QUESTION = 24;
-    int ID = 25;
-    int CODE = 26;
-    int CLASSNAME = 27;
+    int DOLLAR = 25;
+    int ID = 26;
+    int CODE = 27;
+    int CLASSNAME = 28;
 
     /* non terminals */
     //int start = 0;

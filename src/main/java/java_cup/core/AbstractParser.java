@@ -8,7 +8,6 @@ import java.util.Map;
 import java_cup.InternalException;
 import java_cup.Main;
 import java_cup.NonTerminal;
-import static java_cup.NonTerminal.create;
 import java_cup.Production;
 import java_cup.ProductionItem;
 import java_cup.Terminal;
@@ -95,7 +94,25 @@ abstract class AbstractParser extends BaseParser {
         final String name = "$IPNT_" + index;
         NonTerminal result = (NonTerminal) this.symbols.get(name);
         if (result == null) {
-            result = NonTerminal.create(name, null);
+            String type = null;
+            for (List<Object> rhse : rhses) {
+                for (Object rhse1 : rhse) {
+                    if (!(rhse1 instanceof ProductionItem)) {
+                        continue;
+                    }
+                    ProductionItem item = (ProductionItem) rhse1;
+                    if (!"$".equals(item.label)) {
+                        continue;
+                    }
+                    if (type == null) {
+                        type = item.sym.type;
+                    } else if (!type.equals(item.sym.type)) {
+                        type = "Object";
+                    }
+                }
+            }
+
+            result = NonTerminal.create(name, type);
             declearSymbol(result);
             for (List rhs : rhses) {
                 Production.create(result, rhs.toArray());

@@ -19,6 +19,7 @@ public class Production implements Comparable<Production> {
         int count = 0;
         String lasAction = null;
         int prec = -1;
+        int resultSym = -1;
         boolean calPrec = true;
         for (Object part : rhsCandi) {
             if (part instanceof ProductionItem) {
@@ -26,8 +27,15 @@ public class Production implements Comparable<Production> {
                     temp[count++] = createInsidePart(lasAction);
                     lasAction = null;
                 }
-                temp[count++] = (ProductionItem) part;
-                symbol sym = ((ProductionItem) part).sym;
+                ProductionItem item = (ProductionItem) part;
+                if ("$".equals(item.label)) {
+                    if (resultSym >= 0) {
+                        throw new InternalException("Too much symbol marked by `$` for `" + lhsSymbol.name + '\'');
+                    }
+                    resultSym = count;
+                }
+                temp[count++] = item;
+                symbol sym = item.sym;
                 sym.use();
                 if (calPrec && sym instanceof Terminal) {
                     prec = ((Terminal) sym).precedence();
@@ -53,7 +61,11 @@ public class Production implements Comparable<Production> {
         if (lasAction != null) {
             code = resolveCode(rhs, lasAction.trim());
         } else {
-            code = "return null;";
+            if (resultSym >= 0) {
+                code = "return myStack.peek(" + (count - resultSym - 1) + ").value;";
+            } else {
+                code = "return null;";
+            }
         }
         code = code.trim();
         Production prod = new Production(all.size(), new ProductionItem(lhsSymbol), rhs, code, prec);

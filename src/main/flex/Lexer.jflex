@@ -66,6 +66,7 @@ ident = ([:jletter:] | "_" ) ([:jletterdigit:] | [:jletter:] | "_" )*
 <YYINITIAL> {
 
   {Whitespace}  {                                              }
+  "$"           { return symbol(Tokens.DOLLAR);              }
   "?"           { return symbol(Tokens.QUESTION);              }
   ";"           { return symbol(Tokens.SEMI);                  }
   ","           { return symbol(Tokens.COMMA);                }
