@@ -167,7 +167,8 @@ public class Production implements Comparable<Production> {
                 continue;
             }
             String labelName = part.label;
-            String stackType = (part.sym).type;
+            String stackType = part.sym.type;
+            String stackTypeString = "Object".equals(stackType) ? "" : ("(" + stackType + ") ");
             int offset = rhs.length - i - 1;
             //
             boolean count_value = false;
@@ -189,10 +190,10 @@ public class Production implements Comparable<Production> {
                 code = StringUtil.replace(code, new String[]{
                     repalce_value, repalce_line, repalce_column
                 }, new String[]{
-                    "(" + stackType + ") " + labelName.concat("Symbol.value"), labelName.concat("Symbol.line"), labelName.concat("Symbol.column")
+                    stackTypeString + labelName + "Symbol.value", labelName.concat("Symbol.line"), labelName.concat("Symbol.column")
                 });
             } else {
-                code = StringUtil.replace(code, repalce_value, "(" + stackType + ") myStack.peek(" + offset + ").value");
+                code = StringUtil.replace(code, repalce_value, stackTypeString + "myStack.peek(" + offset + ").value");
                 code = code.replaceAll("return \\([a-zA-Z0-9_$]+\\) (myStack\\.peek\\([0-9]+\\)\\.value;)", "return $1");
             }
         }

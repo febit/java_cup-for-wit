@@ -81,7 +81,11 @@ abstract class AbstractParser extends BaseParser {
         StringBuilder buffer = new StringBuilder();
         for (List rhs : rhses) {
             for (Object rh : rhs) {
-                buffer.append(rh).append(',');
+                    buffer.append(
+                    (rh instanceof ProductionItem)?
+                            ((ProductionItem)rh).sym.name
+                            :rh
+                    ).append(',');
             }
             buffer.append('|');
         }
