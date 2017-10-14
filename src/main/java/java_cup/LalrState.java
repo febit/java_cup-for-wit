@@ -486,7 +486,7 @@ public class LalrState {
                 }
                 /* report S/R conflicts under iterator the symbols we conflict under */
                 for (int t = 0; t < Terminal.size(); t++) {
-                    if (conflict_set.contains(t)) {
+                    if (conflict_set.contains(t) && itm.lookahead.contains(t)) {
                         Main.reportShiftReduceConflict(this, itm, t);
                     }
                 }

@@ -300,8 +300,7 @@ public class Main {
     }
 
     /**
-     * Compute first sets for each non-terminal. This assumes nullability has
-     * already computed.
+     * Compute first sets for each non-terminal. This assumes nullability has already computed.
      */
     private static void computeFirstSets() {
         boolean change;
@@ -502,7 +501,7 @@ public class Main {
         StringBuilder message = new StringBuilder()
                 .append("*** Shift/Reduce conflict found in state #").append(state.id)
                 .append("\n" + "  between ").append(red_itm).append("\n");
-
+        int relevancecounter = 0;
         /* get and report on iterator items that shift under our conflict symbol */
         for (LalrItem itm : state.items.values()) {
 
@@ -511,6 +510,7 @@ public class Main {
                 /* is it a shift on our conflicting Terminal */
                 symbol shift_sym = itm.symbolAfterDot;
                 if ((shift_sym instanceof Terminal) && shift_sym.id == conflictSymbol) {
+                    relevancecounter++;
                     /* yes, report on it */
                     message.append("  and     ").append(itm).append('\n');
                 }
@@ -518,7 +518,9 @@ public class Main {
         }
         message.append("  under symbol ").append(Terminal.get(conflictSymbol).name)
                 .append("\n  Resolved in favor of shifting.\n");
-
+        if (relevancecounter == 0) {
+            return;
+        }
         /* count the conflict */
         Main.conflictCount++;
         Main.warning(message.toString());

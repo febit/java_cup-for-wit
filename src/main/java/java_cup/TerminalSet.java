@@ -87,13 +87,7 @@ public class TerminalSet {
      * @param other the other set in question.
      */
     public boolean intersects(TerminalSet other) {
-        BitSet copy = (BitSet) other.datas.clone();
-
-        /* xor out our values */
-        copy.xor(this.datas);
-
-        /* see if its different */
-        return !copy.equals(other.datas);
+        return datas.intersects(other.datas);
     }
 
     @Override
