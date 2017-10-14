@@ -3,10 +3,9 @@ package java_cup;
 import java.util.ArrayList;
 
 /**
- * This class represents a Production in the grammar. It contains a LHS non
- * Terminal, and an array of RHS symbols. As various transformations are done on
- * the RHS of the Production, it may shrink. As a result a separate length is
- * always maintained to indicate how much of the RHS array is still valid.
+ * This class represents a Production in the grammar. It contains a LHS non Terminal, and an array of RHS symbols. As
+ * various transformations are done on the RHS of the Production, it may shrink. As a result a separate length is always
+ * maintained to indicate how much of the RHS array is still valid.
  */
 public class Production implements Comparable<Production> {
 
@@ -127,14 +126,14 @@ public class Production implements Comparable<Production> {
     protected boolean _nullable = false;
 
     /**
-     * First set of the Production. This is the set of terminals that could
-     * appear at the front of some string derived from this Production.
+     * First set of the Production. This is the set of terminals that could appear at the front of some string derived
+     * from this Production.
      */
     protected TerminalSet _first_set = new TerminalSet();
 
     /**
-     * First set of the Production. This is the set of terminals that could
-     * appear at the front of some string derived from this Production.
+     * First set of the Production. This is the set of terminals that could appear at the front of some string derived
+     * from this Production.
      */
     public TerminalSet first_set() {
         return _first_set;
@@ -175,6 +174,7 @@ public class Production implements Comparable<Production> {
             String repalce_value = '%' + labelName + '%';
             String repalce_line = '%' + labelName + ".line%";
             String repalce_column = '%' + labelName + ".column%";
+            String repalce_symbol = '%' + labelName + ".symbol%";
             //
             int index;
             index = code.indexOf(repalce_value);
@@ -182,15 +182,19 @@ public class Production implements Comparable<Production> {
                 count_value = (code.indexOf(repalce_value, index + repalce_value.length()) >= 0);
             }
             if (count_value == false) {
-                count_value = code.contains(repalce_line) || code.contains(repalce_column);
+                count_value = code.contains(repalce_line)
+                        || code.contains(repalce_column)
+                        || code.contains(repalce_symbol);
             }
             if (count_value) {
                 declaration.append("                Symbol ").append(labelName).append("Symbol = myStack.peek(").append(offset).append(");\n");
-                //declaration.append("\t\t" + stack_type + " " + labelname + " = (" + stack_type + ") " + labelname + "Symbol.value;\n");
                 code = StringUtil.replace(code, new String[]{
-                    repalce_value, repalce_line, repalce_column
+                    repalce_value, repalce_line, repalce_column, repalce_symbol
                 }, new String[]{
-                    stackTypeString + labelName + "Symbol.value", labelName.concat("Symbol.line"), labelName.concat("Symbol.column")
+                    stackTypeString + labelName + "Symbol.value",
+                    labelName.concat("Symbol.line"),
+                    labelName.concat("Symbol.column"),
+                    labelName.concat("Symbol")
                 });
             } else {
                 code = StringUtil.replace(code, repalce_value, stackTypeString + "myStack.peek(" + offset + ").value");
@@ -201,10 +205,8 @@ public class Production implements Comparable<Production> {
     }
 
     /**
-     * Check to see if the Production (now) appears to be nullable. A Production
-     * is nullable if its RHS could derive the empty string. This results when
-     * the RHS is empty or contains only non terminals which themselves are
-     * nullable.
+     * Check to see if the Production (now) appears to be nullable. A Production is nullable if its RHS could derive the
+     * empty string. This results when the RHS is empty or contains only non terminals which themselves are nullable.
      */
     public boolean checkNullable() {
         /* if we already know bail out early */
@@ -241,9 +243,8 @@ public class Production implements Comparable<Production> {
     }
 
     /**
-     * Update (and return) the first set based on current NT firsts. This
-     * assumes that nullability has already been computed for iterator non
-     * terminals and productions.
+     * Update (and return) the first set based on current NT firsts. This assumes that nullability has already been
+     * computed for iterator non terminals and productions.
      */
     public TerminalSet checkFirstSet() {
         /* walk down the right hand side till we get past iterator nullables */
@@ -274,7 +275,7 @@ public class Production implements Comparable<Production> {
     public String toString() {
         StringBuilder result
                 = new StringBuilder(lhs.sym.name)
-                .append(" ::= ");
+                        .append(" ::= ");
         for (ProductionItem rh : this.rhs) {
             result.append(rh.sym.name).append(' ');
         }
