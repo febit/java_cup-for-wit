@@ -3,13 +3,9 @@ package java_cup;
 /**
  * This class represents a reduce code within the parse table.
  */
-public class ReduceAction implements Action {
-
-    public final Production reduceWith;
-
-    public ReduceAction(Production prod) {
-        this.reduceWith = prod;
-    }
+public record ReduceAction(
+        Production reduceWith
+) implements Action {
 
     public int type() {
         return REDUCE;
@@ -21,11 +17,6 @@ public class ReduceAction implements Action {
             return false;
         }
         return ((ReduceAction) other).reduceWith == this.reduceWith;
-    }
-
-    @Override
-    public int hashCode() {
-        return reduceWith.hashCode();
     }
 
     @Override

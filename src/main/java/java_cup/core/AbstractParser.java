@@ -1,17 +1,12 @@
 // Copyright (c) 2013-2014, Webit Team. All Rights Reserved.
 package java_cup.core;
 
+import java_cup.*;
+
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java_cup.InternalException;
-import java_cup.Main;
-import java_cup.NonTerminal;
-import java_cup.Production;
-import java_cup.ProductionItem;
-import java_cup.Terminal;
-import java_cup.symbol;
 
 /**
  *
@@ -19,8 +14,8 @@ import java_cup.symbol;
  */
 abstract class AbstractParser extends BaseParser {
 
-    private final HashMap<String, symbol> symbols = new HashMap();
-    private final Map<String, Integer> insideProdNTKeyMap = new HashMap();
+    private final HashMap<String, symbol> symbols = new HashMap<>();
+    private final Map<String, Integer> insideProdNTKeyMap = new HashMap<>();
 
     private NonTerminal startSymbol;
     private int _cur_prec = 0;
@@ -53,11 +48,11 @@ abstract class AbstractParser extends BaseParser {
             result = NonTerminal.create(name, "java.util.List<" + compSym.type + ">");
             declearSymbol(result);
             //create Production for nt
-            Production.create(result, new Object[]{new ProductionItem(compSym), "java.util.List list = new java.util.ArrayList(); list.add(myStack.peek(0).value); return list;"});
+            Production.create(result, new Object[]{new ProductionItem(compSym), "var list = new java.util.ArrayList<>(); list.add(myStack.peek(0).value); yield list;"});
             if (split != null) {
-                Production.create(result, new Object[]{new ProductionItem(result), new ProductionItem(getSymbol(split)), new ProductionItem(compSym), "java.util.List list = (java.util.List) (myStack.peek(2).value); list.add(myStack.peek(0).value); return list;"});
+                Production.create(result, new Object[]{new ProductionItem(result), new ProductionItem(getSymbol(split)), new ProductionItem(compSym), "var list = (java.util.List<Object>) (myStack.peek(2).value); list.add(myStack.peek(0).value); yield list;"});
             } else {
-                Production.create(result, new Object[]{new ProductionItem(result), new ProductionItem(compSym), "java.util.List list = (java.util.List) (myStack.peek(1).value); list.add(myStack.peek(0).value); return list;"});
+                Production.create(result, new Object[]{new ProductionItem(result), new ProductionItem(compSym), "var list = (java.util.List<Object>) (myStack.peek(1).value); list.add(myStack.peek(0).value); yield list;"});
             }
         }
         return result;
@@ -71,21 +66,20 @@ abstract class AbstractParser extends BaseParser {
             result = NonTerminal.create(name, compSym.type);
             declearSymbol(result);
             //create Production for nt
-            Production.create(result, new Object[]{"return null;"});
-            Production.create(result, new Object[]{new ProductionItem(compSym), "return myStack.peek(0).value;"});
+            Production.create(result, new Object[]{"yield null;"});
+            Production.create(result, new Object[]{new ProductionItem(compSym), "yield myStack.peek(0).value;"});
         }
         return result;
     }
 
     NonTerminal createInsideProductionNonTerminalIfAbsent(final List<List<Object>> rhses) {
-        StringBuilder buffer = new StringBuilder();
-        for (List rhs : rhses) {
+        var buffer = new StringBuilder();
+        for (var rhs : rhses) {
             for (Object rh : rhs) {
-                    buffer.append(
-                    (rh instanceof ProductionItem)?
-                            ((ProductionItem)rh).sym.name
-                            :rh
-                    ).append(',');
+                buffer.append(
+                        (rh instanceof ProductionItem pi) ?
+                                pi.sym().name : rh
+                ).append(',');
             }
             buffer.append('|');
         }
@@ -99,18 +93,18 @@ abstract class AbstractParser extends BaseParser {
         NonTerminal result = (NonTerminal) this.symbols.get(name);
         if (result == null) {
             String type = null;
-            for (List<Object> rhse : rhses) {
-                for (Object rhse1 : rhse) {
+            for (var rhse : rhses) {
+                for (var rhse1 : rhse) {
                     if (!(rhse1 instanceof ProductionItem)) {
                         continue;
                     }
-                    ProductionItem item = (ProductionItem) rhse1;
-                    if (!"$".equals(item.label)) {
+                    var item = (ProductionItem) rhse1;
+                    if (!"$".equals(item.label())) {
                         continue;
                     }
                     if (type == null) {
-                        type = item.sym.type;
-                    } else if (!type.equals(item.sym.type)) {
+                        type = item.sym().type;
+                    } else if (!type.equals(item.sym().type)) {
                         type = "Object";
                     }
                 }
@@ -118,7 +112,7 @@ abstract class AbstractParser extends BaseParser {
 
             result = NonTerminal.create(name, type);
             declearSymbol(result);
-            for (List rhs : rhses) {
+            for (var rhs : rhses) {
                 Production.create(result, rhs.toArray());
             }
         }
@@ -150,8 +144,8 @@ abstract class AbstractParser extends BaseParser {
         if (nt == null) {
             throw new InternalException("Non-Terminal \"" + name + "\" has not been declared");
         }
-        if (nt instanceof NonTerminal) {
-            return (NonTerminal) nt;
+        if (nt instanceof NonTerminal ter) {
+            return ter;
         }
         throw new InternalException("Symbol \"" + name + "\" is not a Non-Terminal");
     }
@@ -161,8 +155,8 @@ abstract class AbstractParser extends BaseParser {
         if (nt == null) {
             throw new InternalException("Terminal \"" + name + "\" has not been declared");
         }
-        if (nt instanceof Terminal) {
-            return (Terminal) nt;
+        if (nt instanceof Terminal terminal) {
+            return terminal;
         }
         throw new InternalException("Symbol \"" + name + "\" is not a Terminal");
     }
@@ -173,7 +167,7 @@ abstract class AbstractParser extends BaseParser {
         NonTerminal startNonTerminal = NonTerminal.create("$START", null);
         declearSymbol(startNonTerminal);
         Main.startProduction = Production.create(startNonTerminal,
-                new Object[]{createProductionItem(startSymbol, null), createProductionItem(Terminal.EOF, null), "this.goonParse = false; return myStack.peek(1).value;"});
+                new Object[]{createProductionItem(startSymbol, null), createProductionItem(Terminal.EOF, null), "this.goonParse = false; yield myStack.peek(1).value;"});
     }
 
     void createProduction(String lhs, List<List<Object>> rhses) {
@@ -181,7 +175,7 @@ abstract class AbstractParser extends BaseParser {
             registStartNonTerminal(lhs);
         }
         NonTerminal leftSymbol = getNonTerminal(lhs);
-        for (List rhs : rhses) {
+        for (var rhs : rhses) {
             Production.create(leftSymbol, rhs.toArray());
         }
     }

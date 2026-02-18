@@ -1,30 +1,23 @@
 package java_cup;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 import java_cup.core.Parser;
+
+import java.io.*;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class serves as the main driver for the JavaCup system.
  */
 public class Main {
 
-    public static final String version = "v1.0";
-    public static final String title = "CUP-WIT " + version;
+    public static final String VERSION = "v1.0";
+    public static final String TITLE = "CUP-WIT " + VERSION;
 
     private static int errors = 0;
     private static int warnings = 0;
+
 
     protected static boolean optDumpStates = false;
     protected static boolean optDumpTables = false;
@@ -37,8 +30,11 @@ public class Main {
     protected static Action[][] actionTable;
     protected static LalrState[][] reduceTable;
 
+    private static final PrintStream err = System.err;
+
+    public static final List<String> IMPORTS = new ArrayList<>();
+
     public static String packageName;
-    public static final List<String> imports = new ArrayList<String>();
     public static String parserClassName;
     public static int unusedTermCount = 0;
     public static int conflictCount = 0;
@@ -50,7 +46,7 @@ public class Main {
     public static int notReducedCount = 0;
 
     private static void clear() {
-        Main.imports.clear();
+        Main.IMPORTS.clear();
         Main.parserClassName = "Parser";
         Main.tokensClassName = "Tokens";
         Main.packageName = null;
@@ -72,37 +68,39 @@ public class Main {
         Terminal.clear();
     }
 
-    public static void main(String args[]) throws InternalException, java.io.IOException, java.lang.Exception {
+    public static void main(String[] args) throws java.lang.Exception {
 
         clear();
 
         parseArgs(args);
 
-        System.err.println("Parsing...");
+        err.println("Parsing...");
         new Parser().parse();
 
         boolean written = false;
         if (Main.errors == 0) {
 
-            System.err.println("Checking...");
+            err.println("Checking...");
             checkUnused();
 
-            System.err.println("Building tables...");
+            err.println("Building tables...");
             buildParser();
 
             if (Main.errors != 0) {
                 optDumpTables = false;
             } else {
-                System.err.println("Writing...");
+                err.println("Writing...");
 
                 emitProductionData();
                 emitActionData();
                 emitReduceData();
 
                 PrintWriter parserWriter = new PrintWriter(
-                        new BufferedOutputStream(new FileOutputStream(new File(destDir, parserClassName + ".java")), 4096));
+                        new BufferedOutputStream(new FileOutputStream(new File(destDir,
+                                parserClassName + ".java")), 4096));
                 PrintWriter symbolWriter = new PrintWriter(
-                        new BufferedOutputStream(new FileOutputStream(new File(destDir, tokensClassName + ".java")), 4096));
+                        new BufferedOutputStream(new FileOutputStream(new File(destDir,
+                                tokensClassName + ".java")), 4096));
 
                 emitTokens(symbolWriter);
                 emitParser(parserWriter);
@@ -130,27 +128,27 @@ public class Main {
     }
 
     private static void usage(String message) {
-        System.err.println();
-        System.err.println(message);
-        System.err.println();
-        System.err.println(
+        err.println();
+        err.println(message);
+        err.println();
+        err.println(
                 "Usage: jcup [options] [filename]\n"
-                + "  Legal options:\n"
-                + "    -destdir name  specify the destination directory\n"
-                + "    -parser name   specify parser class name [default \"Parser\"]\n"
-                + "    -symbols name  specify tokens class name [default \"Tokens\"]\n"
-                + "    -dump_grammar  produce a dump of the symbols and grammar\n"
-                + "    -dump_states   produce a dump of parse state machine\n"
-                + "    -dump_tables   produce a dump of the parse tables\n"
-                + "    -dump          produce a dump of all of the above\n"
-                + "    -version\n"
+                        + "  Legal options:\n"
+                        + "    -destdir name  specify the destination directory\n"
+                        + "    -parser name   specify parser class name [default \"Parser\"]\n"
+                        + "    -symbols name  specify tokens class name [default \"Tokens\"]\n"
+                        + "    -dump_grammar  produce a dump of the symbols and grammar\n"
+                        + "    -dump_states   produce a dump of parse state machine\n"
+                        + "    -dump_tables   produce a dump of the parse tables\n"
+                        + "    -dump          produce a dump of all of the above\n"
+                        + "    -version\n"
         );
         System.exit(1);
     }
 
     private static void parseArgs(String args[]) {
         int len = args.length;
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             final String arg = args[i++];
             if (arg.equals("-dump_states")) {
                 optDumpStates = true;
@@ -161,7 +159,7 @@ public class Main {
             } else if (arg.equals("-dump")) {
                 optDumpStates = optDumpTables = optDumpGrammar = true;
             } else if (arg.equals("-version")) {
-                System.out.println(Main.title);
+                System.out.println(Main.TITLE);
                 System.exit(1);
             } else if (i == len) {
                 try {
@@ -206,22 +204,22 @@ public class Main {
 
     protected static void buildParser() {
 
-        System.err.println("  Computing non-terminal nullability...");
+        err.println("  Computing non-terminal nullability...");
         computeNullability();
 
-        System.err.println("  Computing first sets...");
+        err.println("  Computing first sets...");
         computeFirstSets();
 
-        System.err.println("  Building state machine...");
+        err.println("  Building state machine...");
         startState = LalrState.buildMachine();
         if (startState.id != 0) {
             throw new InternalException("Start state must be zero!");
         }
 
-        System.err.println("  Filling in tables...");
+        err.println("  Filling in tables...");
 
         {
-            final int rowSize = LalrState.all.size();
+            final int rowSize = LalrState.ALL.size();
             actionTable = new Action[rowSize][];
             int size = Terminal.size();
             for (int i = 0; i < rowSize; i++) {
@@ -230,9 +228,9 @@ public class Main {
             }
         }
         {
-            final int rowSize = LalrState.all.size();
+            final int rowSize = LalrState.ALL.size();
             reduceTable = new LalrState[rowSize][];
-            int size = NonTerminal.all.size();
+            int size = NonTerminal.ALL.size();
             for (int i = 0; i < rowSize; i++) {
                 reduceTable[i] = new LalrState[size];
             }
@@ -242,7 +240,7 @@ public class Main {
             state.buildTableEntries(actionTable, reduceTable);
         }
 
-        System.err.println("  Checking productions...");
+        err.println("  Checking productions...");
         checkReductions();
 
         if (conflictCount > expectConflicts) {
@@ -251,13 +249,13 @@ public class Main {
     }
 
     private static void checkUnused() {
-        for (Terminal term : Terminal.all) {
+        for (Terminal term : Terminal.ALL) {
             if (!term.isUsed()) {
                 unusedTermCount++;
                 warning("Terminal \"" + term.name + "\" was declared but never used");
             }
         }
-        for (NonTerminal nt : NonTerminal.all) {
+        for (NonTerminal nt : NonTerminal.ALL) {
             if (!nt.isUsed()) {
                 unusedTermCount++;
                 warning("Non terminal \"" + nt.name + "\" was declared but never used");
@@ -269,11 +267,11 @@ public class Main {
         for (Action[] actions : actionTable) {
             for (Action act : actions) {
                 if (act != null && act.type() == Action.REDUCE) {
-                    (((ReduceAction) act).reduceWith).reductionUse();
+                    (((ReduceAction) act).reduceWith()).reductionUse();
                 }
             }
         }
-        for (Production prod : Production.all) {
+        for (Production prod : Production.ALL) {
             if (!prod.reductionUsed()) {
                 notReducedCount++;
                 warning("*** Production \"" + prod + "\" never reduced");
@@ -285,16 +283,14 @@ public class Main {
         boolean change;
         do {
             change = false;
-            for (NonTerminal nt : NonTerminal.all) {
-                if (!nt.nullable()) {
-                    if (nt.looksNullable()) {
-                        change = true;
-                    }
+            for (NonTerminal nt : NonTerminal.ALL) {
+                if (!nt.nullable() && nt.looksNullable()) {
+                    change = true;
                 }
             }
         } while (change);
 
-        for (Production prod : Production.all) {
+        for (Production prod : Production.ALL) {
             prod.checkNullable();
         }
     }
@@ -306,9 +302,9 @@ public class Main {
         boolean change;
         do {
             change = false;
-            for (NonTerminal nt : NonTerminal.all) {
+            for (var nt : NonTerminal.ALL) {
                 for (Production prod : nt.productions) {
-                    TerminalSet prodFirstSet = prod.checkFirstSet();
+                    var prodFirstSet = prod.checkFirstSet();
                     if (!prodFirstSet.isSubOf(nt.firstSet)) {
                         change = true;
                         nt.firstSet.add(prodFirstSet);
@@ -322,52 +318,68 @@ public class Main {
 
         emitPackage(out);
 
-        for (String item : Main.imports) {
+        for (String item : Main.IMPORTS) {
             out.println("import " + item + ";");
         }
 
         out.println();
         out.println("/**");
         out.println(" * ");
-        out.println(" * @version " + new Date());
+        out.println(" * @version " + Instant.ofEpochMilli(System.currentTimeMillis()));
         out.println(" */");
         out.println("public class " + Main.parserClassName + " extends AbstractParser {");
         out.println();
 
-        out.println("    @SuppressWarnings(\"unchecked\")");
-        out.println("    final Object doAction(int actionId)" + (Main.actionExceptionClassName != null ? (" throws " + Main.actionExceptionClassName) : "") + " {");
+        out.println("    ");
+        out.println("    @SuppressWarnings({");
+        out.println("            \"unchecked\",");
+        out.println("            \"DataFlowIssue\",");
+        out.println("            \"java:S1479\" // too many case clauses");
+        out.println("    })");
+        out.println("    final Object doAction(int actionId)" + (
+                Main.actionExceptionClassName != null ? (" throws " + Main.actionExceptionClassName) : "") + " {");
 
-        out.println("        final Stack<Symbol> myStack = this.symbolStack;");
+        out.println("        var myStack = this.tokenStack;");
         out.println();
-        out.println("        switch (actionId){");
+        out.println("        return switch (actionId) {");
 
-        final ArrayList<Production> prods = new ArrayList<Production>(Production.all);
-        Collections.sort(prods);
-        String lastCode = null;
-        for (Production prod : prods) {
-            if (lastCode != null && !lastCode.equals(prod.code)) {
-                emitParserActionCaseCode(out, lastCode);
-            }
-            lastCode = prod.code;
-            out.println("            case " + prod.id + ": // " + prod);
-        }
-        emitParserActionCaseCode(out, lastCode);
-        out.println("            default:");
-        out.println("                throw new RuntimeException(\"Invalid action id.\");");
-        out.println("        }");
+        Production.ALL.stream()
+                .sorted(Comparator.comparing(p -> p.id))
+                .collect(Collectors.groupingBy(
+                        p -> p.code,
+                        TreeMap::new,
+                        Collectors.toList()
+                ))
+                .forEach((code, prods) -> {
+                    var last = prods.size() - 1;
+                    for (int i = 0; i < prods.size(); i++) {
+                        var prod = prods.get(i);
+
+                        out.println((i == 0
+                                ? "            case "
+                                : "                 ")
+                                + prod.id
+                                + (i == last ? " ->" : ",  ")
+                                + " // " + prod);
+                    }
+                    emitParserActionCaseCode(out, code);
+                });
+
+        out.println("            default -> throw new RuntimeException(\"Invalid action id.\");");
+        out.println("        };");
         out.println("    }");
         out.println("}");
     }
 
     private static void emitParserActionCaseCode(PrintWriter out, String code) {
-        boolean needWrap = !code.startsWith("return ");
-        if (needWrap) {
-            out.println("            {");
+        if (code.startsWith("yield ")) {
+            out.println(code.substring("yield ".length()).trim());
+            return;
         }
+
+        out.println("            {");
         out.println(code);
-        if (needWrap) {
-            out.println("            }");
-        }
+        out.println("            }");
     }
 
     public static void emitTokens(PrintWriter out) {
@@ -375,12 +387,12 @@ public class Main {
         out.println("public interface " + Main.tokensClassName + " {");
         out.println();
         out.println("    /* terminals */");
-        for (Terminal term : Terminal.all) {
+        for (Terminal term : Terminal.ALL) {
             out.println("    int " + term.name + " = " + term.id + ";");
         }
         out.println();
         out.println("    /* non terminals */");
-        for (NonTerminal nt : NonTerminal.all) {
+        for (NonTerminal nt : NonTerminal.ALL) {
             out.println("    //int " + nt.name + " = " + nt.id + ";");
         }
         out.println("}");
@@ -390,7 +402,7 @@ public class Main {
     private static void emitPackage(PrintWriter out) {
         out.println();
         out.println("//----------------------------------------------------");
-        out.println("// The following code was generated by " + Main.title);
+        out.println("// The following code was generated by " + Main.TITLE);
         out.println("//----------------------------------------------------");
         out.println();
         if (Main.packageName != null) {
@@ -400,24 +412,24 @@ public class Main {
     }
 
     private static void emitProductionData() {
-        short[][] prod_table = new short[Production.all.size()][2];
-        for (Production prod : Production.all) {
+        short[][] table = new short[Production.ALL.size()][2];
+        for (Production prod : Production.ALL) {
             int i = prod.id;
-            // { lhs symbol , rhs size }
-            prod_table[i][0] = (short) prod.lhs.sym.id;
-            prod_table[i][1] = (short) prod.rhs.length;
+            // [lhs symbol, rhs size]
+            table[i][0] = (short) prod.lhs.sym().id;
+            table[i][1] = (short) prod.rhs.length;
         }
 
-        saveToDataFile(prod_table, "Production");
+        saveToDataFile(table, "Production");
     }
 
     private static void emitActionData() {
 
-        final short[][] action_table = new short[actionTable.length][];
-        final short[] temp_table = new short[2 * actionTable[0].length];
+        var action_table = new short[actionTable.length][];
+        var temp_table = new short[2 * actionTable[0].length];
 
         for (int i = 0; i < actionTable.length; i++) {
-            Action[] row_under_term = actionTable[i];
+            var row_under_term = actionTable[i];
             int nentries = 0;
             for (int j = 0; j < row_under_term.length; j++) {
                 Action act = row_under_term[j];
@@ -430,11 +442,11 @@ public class Main {
                         break;
                     case Action.SHIFT:
                         temp_table[nentries++] = (short) j;
-                        temp_table[nentries++] = (short) (((ShiftAction) act).shiftTo.id + 1);
+                        temp_table[nentries++] = (short) (((ShiftAction) act).shiftTo().id + 1);
                         break;
                     case Action.REDUCE:
                         temp_table[nentries++] = (short) j;
-                        temp_table[nentries++] = (short) (-(((ReduceAction) act).reduceWith.id + 1));
+                        temp_table[nentries++] = (short) (-(((ReduceAction) act).reduceWith().id + 1));
                         break;
                     default:
                         throw new InternalException("Unrecognized action code " + act.type() + " found in parse table");
@@ -479,7 +491,8 @@ public class Main {
         ObjectOutputStream o = null;
         try {
 
-            FileOutputStream out = new FileOutputStream(new File(Main.destResourceDir, Main.parserClassName + "$" + name + ".data"));
+            FileOutputStream out = new FileOutputStream(new File(Main.destResourceDir,
+                    Main.parserClassName + "$" + name + ".data"));
 
             o = new ObjectOutputStream(out);
             o.writeObject(obj);
@@ -530,8 +543,8 @@ public class Main {
      * Produce a warning message for one reduce/reduce conflict.
      *
      * @param state
-     * @param itm1 first item in conflict.
-     * @param itm2 second item in conflict.
+     * @param itm1  first item in conflict.
+     * @param itm2  second item in conflict.
      */
     public static void reportReduceReduceConflict(LalrState state, LalrItem itm1, LalrItem itm2) {
 
@@ -564,76 +577,77 @@ public class Main {
 
     private static void printSummary(boolean written) {
 
-        System.err.println("------- " + Main.title + " Parser Generation Summary -------");
+        err.println("------- " + Main.TITLE + " Parser Generation Summary -------");
 
-        System.err.println("  " + Main.errors + " errors and " + Main.warnings + " warnings");
+        err.println("  " + Main.errors + " errors and " + Main.warnings + " warnings");
 
-        System.err.print("  " + Terminal.size() + " terminals, ");
-        System.err.print(NonTerminal.all.size() + " non-terminals, and ");
-        System.err.println(Production.all.size() + " productions declared, ");
-        System.err.println("  producing " + LalrState.all.size() + " unique parse states.");
+        err.print("  " + Terminal.size() + " terminals, ");
+        err.print(NonTerminal.ALL.size() + " non-terminals, and ");
+        err.println(Production.ALL.size() + " productions declared, ");
+        err.println("  producing " + LalrState.ALL.size() + " unique parse states.");
 
-        System.err.println("  " + unusedTermCount + " terminals declared but not used.");
-        System.err.println("  " + unusedNonTermCount + " non-terminals declared but not used.");
-        System.err.println("  " + notReducedCount + " productions never reduced.");
-        System.err.println("  " + conflictCount + " conflicts detected" + " (" + expectConflicts + " expected).");
+        err.println("  " + unusedTermCount + " terminals declared but not used.");
+        err.println("  " + unusedNonTermCount + " non-terminals declared but not used.");
+        err.println("  " + notReducedCount + " productions never reduced.");
+        err.println("  " + conflictCount + " conflicts detected" + " (" + expectConflicts + " expected).");
 
         if (written) {
-            System.err.println("  Code written to \"" + parserClassName + ".java\", and \"" + tokensClassName + ".java\".");
+            err.println(
+                    "  Code written to \"" + parserClassName + ".java\", and \"" + tokensClassName + ".java\".");
         } else {
-            System.err.println("  No code produced.");
+            err.println("  No code produced.");
         }
 
-        System.err.println("---------------------------------------------------- ");
+        err.println("---------------------------------------------------- ");
     }
 
     public static void dumpGrammar() {
-        System.err.println("===== Terminals =====");
+        err.println("===== Terminals =====");
         for (int i = 0; i < Terminal.size(); i++) {
-            System.err.print("[" + i + ']' + Terminal.get(i).name + ' ');
+            err.print("[" + i + ']' + Terminal.get(i).name + ' ');
             if ((i + 1) % 5 == 0) {
-                System.err.println();
+                err.println();
             }
         }
-        System.err.println();
-        System.err.println();
+        err.println();
+        err.println();
 
-        System.err.println("===== Non terminals =====");
-        for (int i = 0; i < NonTerminal.all.size(); i++) {
-            System.err.print("[" + i + ']' + NonTerminal.all.get(i).name + ' ');
+        err.println("===== Non terminals =====");
+        for (int i = 0; i < NonTerminal.ALL.size(); i++) {
+            err.print("[" + i + ']' + NonTerminal.ALL.get(i).name + ' ');
             if ((i + 1) % 5 == 0) {
-                System.err.println();
+                err.println();
             }
         }
-        System.err.println();
-        System.err.println();
+        err.println();
+        err.println();
 
-        System.err.println("===== Productions =====");
-        for (int i = 0; i < Production.all.size(); i++) {
-            Production prod = Production.all.get(i);
-            System.err.print("[" + i + "] " + ((prod.lhs).sym).name + " ::= ");
+        err.println("===== Productions =====");
+        for (int i = 0; i < Production.ALL.size(); i++) {
+            Production prod = Production.ALL.get(i);
+            err.print("[" + i + "] " + ((prod.lhs).sym()).name + " ::= ");
             for (ProductionItem rh : prod.rhs) {
-                System.err.print((rh.sym).name + ' ');
+                err.print((rh.sym()).name + ' ');
             }
-            System.err.println();
+            err.println();
         }
-        System.err.println();
+        err.println();
     }
 
     public static void dumpMachine() {
-        LalrState ordered[] = new LalrState[LalrState.all.size()];
+        LalrState ordered[] = new LalrState[LalrState.ALL.size()];
 
         for (LalrState state : LalrState.all()) {
             ordered[(state.id)] = state;
         }
 
-        System.err.println("===== Viable Prefix Recognizer =====");
-        for (int i = 0; i < LalrState.all.size(); i++) {
+        err.println("===== Viable Prefix Recognizer =====");
+        for (int i = 0; i < LalrState.ALL.size(); i++) {
             if (ordered[i] == startState) {
-                System.err.print("START ");
+                err.print("START ");
             }
-            System.err.println(ordered[i]);
-            System.err.println("-------------------");
+            err.println(ordered[i]);
+            err.println("-------------------");
         }
     }
 
@@ -689,12 +703,12 @@ public class Main {
     }
 
     public static void error(String message) {
-        System.err.println("Error : " + message);
+        err.println("Error : " + message);
         Main.errors++;
     }
 
     public static void warning(String message) {
-        System.err.println("Warning : " + message);
+        err.println("Warning : " + message);
         Main.warnings++;
     }
 

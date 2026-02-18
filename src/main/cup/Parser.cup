@@ -19,87 +19,87 @@ nonterminal start, varTerm, preced, prodPart;
 nonterminal symbol prodPartSym;
 nonterminal String  typeName, robustIdent, labid, typearglist, typearguement;
 
-start       ::= (PACKAGE CLASSNAME:name {: Main.packageName = %name%; return null; :}) ?
-                (IMPORT CLASSNAME:name {: Main.imports.add(%name%); return null; :})[] ?
+start       ::= (PACKAGE CLASSNAME:name {: Main.packageName = %name%; yield null; :}) ?
+                (IMPORT CLASSNAME:name {: Main.IMPORTS.add(%name%); yield null; :})[] ?
                 varTerm[]
                 preced[] ?
-                (ID:lhs COLON_COLON_EQUALS prodPart[][BAR]:rhses SEMI {: createProduction(%lhs%, %rhses%); return null; :})[]
+                (ID:lhs COLON_COLON_EQUALS prodPart[][BAR]:rhses SEMI {: createProduction(%lhs%, %rhses%); yield null; :})[]
                 ;
 
 varTerm     ::= TERMINAL typeName:type ID[COMMA]:symbolList SEMI
-                {: declearTerminals(%symbolList%, %type%); return null; :}
+                {: declearTerminals(%symbolList%, %type%); yield null; :}
                 |TERMINAL ID[COMMA]:symbolList SEMI
-                {: declearTerminals(%symbolList%, null); return null; :}
+                {: declearTerminals(%symbolList%, null); yield null; :}
                 | NONTERMINAL typeName:type ID[COMMA]:symbolList SEMI
-                {: declearNonTerminals(%symbolList%, %type%); return null; :}
+                {: declearNonTerminals(%symbolList%, %type%); yield null; :}
                 | NONTERMINAL ID[COMMA]:symbolList SEMI
-                {: declearNonTerminals(%symbolList%, null); return null; :}
+                {: declearNonTerminals(%symbolList%, null); yield null; :}
                 ;
 
 
 preced      ::= PRECEDENCE LEFT ID[COMMA]:symbolList SEMI
-                {: addPrecedence(Assoc.LEFT, %symbolList%); return null; :}
+                {: addPrecedence(Assoc.LEFT, %symbolList%); yield null; :}
                 | PRECEDENCE RIGHT ID[COMMA]:symbolList SEMI
-                {: addPrecedence(Assoc.RIGHT, %symbolList%); return null; :}
+                {: addPrecedence(Assoc.RIGHT, %symbolList%); yield null; :}
                 | PRECEDENCE NONASSOC ID[COMMA]:symbolList SEMI
-                {: addPrecedence(Assoc.NONASSOC, %symbolList%); return null; :}
+                {: addPrecedence(Assoc.NONASSOC, %symbolList%); yield null; :}
                 ;
 
 
 prodPartSym ::= ID:sym
-                {: return getSymbol(%sym%); :}
+                {: yield getSymbol(%sym%); :}
                 | LPAREN prodPart[][BAR]:rhses RPAREN
-                {: return createInsideProductionNonTerminalIfAbsent(%rhses%); :}
+                {: yield createInsideProductionNonTerminalIfAbsent(%rhses%); :}
                 | prodPartSym:sym LBRACK ID:split? RBRACK
-                {: return createListNonTerminalIfAbsent(%sym%, %split%); :}
+                {: yield createListNonTerminalIfAbsent(%sym%, %split%); :}
                 ;
 
 
 prodPart    ::= prodPartSym:sym labid:labid?
-                {: return createProductionItem(%sym%, %labid%); :} 
+                {: yield createProductionItem(%sym%, %labid%); :} 
                 | prodPartSym:sym labid:labid? QUESTION
-                {: return createProductionItem(createOptionableNonTerminalIfAbsent(%sym%), %labid%); :}
+                {: yield createProductionItem(createOptionableNonTerminalIfAbsent(%sym%), %labid%); :}
                 | CODE:$
                 | PERCENT_PREC ID:sym
-                {: return getTerminalPrecedence(%sym%); :}
+                {: yield getTerminalPrecedence(%sym%); :}
                 ;
 
 
 labid       ::= COLON robustIdent:$
                 |COLON DOLLAR
-                {: return "$"; :}
+                {: yield "$"; :}
                 ;
 
 
 typearglist ::= typearguement:$
                 | typearglist:args COMMA typearguement:arg
-                {: return (%args%) + ',' + (%arg%); :}
+                {: yield (%args%) + ',' + (%arg%); :}
                 ;
 
 typearguement ::=
                 typeName:$
                 | QUESTION
-                {: return " ? "; :}
+                {: yield " ? "; :}
                 | QUESTION EXTENDS robustIdent:id
-                {: return " ? extends " + (%id%); :}
+                {: yield " ? extends " + (%id%); :}
                 | QUESTION SUPER robustIdent:id
-                {: return " ? super " + (%id%); :}
+                {: yield " ? super " + (%id%); :}
                 ;
 
 typeName    ::= robustIdent:$
                 | typeName:id LBRACK RBRACK
-                {: return (%id%).concat("[]"); :}
+                {: yield (%id%).concat("[]"); :}
                 | robustIdent:id LT typearglist:args GT
-                {: return (%id%) + '<' + (%args%) +'>'; :}
+                {: yield (%id%) + '<' + (%args%) +'>'; :}
                 ;
 
 
 robustIdent ::= ID:$
-                | TERMINAL	{: return "terminal"; :}
-                | NONTERMINAL	{: return "nonterminal"; :}
-                | PRECEDENCE	{: return "precedence"; :}
-                | LEFT		{: return "left"; :}
-                | RIGHT		{: return "right"; :}
-                | NONASSOC	{: return "nonassoc"; :}
+                | TERMINAL	{: yield "terminal"; :}
+                | NONTERMINAL	{: yield "nonterminal"; :}
+                | PRECEDENCE	{: yield "precedence"; :}
+                | LEFT		{: yield "left"; :}
+                | RIGHT		{: yield "right"; :}
+                | NONASSOC	{: yield "nonassoc"; :}
                 ;
 

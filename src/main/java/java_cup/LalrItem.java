@@ -51,7 +51,7 @@ public class LalrItem {
         if (pos < 0 || pos > prod.rhs.length) {
             throw new InternalException("Attempt to create an lr_item_core with a bad dot position");
         }
-        this.symbolAfterDot = pos < prod.rhs.length ? prod.rhs[pos].sym : null;
+        this.symbolAfterDot = pos < prod.rhs.length ? prod.rhs[pos].sym() : null;
         this.dotAtEnd = pos >= prod.rhs.length;
         this.hashcode = 13 * prod.hashCode() + pos;
         this.production = prod;
@@ -174,7 +174,7 @@ public class LalrItem {
         /* consider iterator nullable symbols after the one to the right of the dot */
         for (pos = dotPos + 1; pos < production.rhs.length; pos++) {
 
-            sym = production.rhs[pos].sym;
+            sym = production.rhs[pos].sym();
 
             /* if its a Terminal add it in and we are done */
             if (sym instanceof NonTerminal) {
@@ -215,7 +215,7 @@ public class LalrItem {
 
         /* walk down the rhs and bail if we get a non-nullable symbol */
         for (int pos = dotPos + 1; pos < production.rhs.length; pos++) {
-            symbol sym = production.rhs[pos].sym;
+            symbol sym = production.rhs[pos].sym();
 
             /* if its a Terminal we fail */
             if (sym instanceof Terminal) {
@@ -250,13 +250,13 @@ public class LalrItem {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append('[').append(production.lhs.sym.name).append(" ::= ");
+        result.append('[').append(production.lhs.sym().name).append(" ::= ");
         for (int i = 0; i < production.rhs.length; i++) {
             /* do we need the dot before this one? */
             if (i == dotPos) {
                 result.append("(*) ");
             }
-            result.append(production.rhs[i].sym.name).append(' ');
+            result.append(production.rhs[i].sym().name).append(' ');
         }
 
         /* put the dot after if needed */

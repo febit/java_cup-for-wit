@@ -1,30 +1,31 @@
 package java_cup;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class represents a Terminal symbol in the grammar.
  */
 public class Terminal extends symbol {
 
-    public static final ArrayList<Terminal> all = new ArrayList<Terminal>();
+    public static final List<Terminal> ALL = new ArrayList<>();
 
     public static Terminal EOF;
     public static Terminal ERROR;
 
     public static void clear() {
-        all.clear();
+        ALL.clear();
         EOF = Terminal.create("EOF", null);
         ERROR = Terminal.create("ERROR", null);
         ERROR.use();
     }
 
-    public static Terminal get(int indx) {
-        return (Terminal) all.get(indx);
+    public static Terminal get(int index) {
+        return ALL.get(index);
     }
 
     public static int size() {
-        return all.size();
+        return ALL.size();
     }
 
     public static Terminal create(String nm) {
@@ -32,8 +33,8 @@ public class Terminal extends symbol {
     }
 
     public static Terminal create(String name, String type) {
-        Terminal terminal = new Terminal(all.size(), name, type);
-        all.add(terminal);
+        Terminal terminal = new Terminal(ALL.size(), name, type);
+        ALL.add(terminal);
         return terminal;
     }
 

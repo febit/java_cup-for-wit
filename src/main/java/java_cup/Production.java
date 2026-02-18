@@ -1,6 +1,7 @@
 package java_cup;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class represents a Production in the grammar. It contains a LHS non Terminal, and an array of RHS symbols. As
@@ -9,7 +10,7 @@ import java.util.ArrayList;
  */
 public class Production implements Comparable<Production> {
 
-    public static final ArrayList<Production> all = new ArrayList<Production>();
+    public static final List<Production> ALL = new ArrayList<>();
 
     public static Production create(NonTerminal lhsSymbol, Object[] rhsCandi) {
         lhsSymbol.use();
@@ -26,15 +27,15 @@ public class Production implements Comparable<Production> {
                     temp[count++] = createInsidePart(lasAction);
                     lasAction = null;
                 }
-                ProductionItem item = (ProductionItem) part;
-                if ("$".equals(item.label)) {
+                var item = (ProductionItem) part;
+                if ("$".equals(item.label())) {
                     if (resultSym >= 0) {
                         throw new InternalException("Too much symbol marked by `$` for `" + lhsSymbol.name + '\'');
                     }
                     resultSym = count;
                 }
                 temp[count++] = item;
-                symbol sym = item.sym;
+                symbol sym = item.sym();
                 sym.use();
                 if (calPrec && sym instanceof Terminal) {
                     prec = ((Terminal) sym).precedence();
@@ -61,26 +62,26 @@ public class Production implements Comparable<Production> {
             code = resolveCode(rhs, lasAction.trim());
         } else {
             if (resultSym >= 0) {
-                code = "return myStack.peek(" + (count - resultSym - 1) + ").value;";
+                code = "yield myStack.peek(" + (count - resultSym - 1) + ").value;";
             } else {
-                code = "return null;";
+                code = "yield null;";
             }
         }
         code = code.trim();
-        Production prod = new Production(all.size(), new ProductionItem(lhsSymbol), rhs, code, prec);
+        Production prod = new Production(ALL.size(), new ProductionItem(lhsSymbol), rhs, code, prec);
 
-        //XXX check if have a return statement
-        if (!code.contains("return ")) {
-            throw new InternalException("Production must has a 'return':" + prod);
+        //XXX check if have a yield statement
+        if (!code.contains("yield ")) {
+            throw new InternalException("Production must has a 'yield':" + prod);
         }
 
-        all.add(prod);
+        ALL.add(prod);
         lhsSymbol.productions.add(prod);
         return prod;
     }
 
     public static void clear() {
-        all.clear();
+        ALL.clear();
     }
 
     public final int id;
@@ -92,6 +93,22 @@ public class Production implements Comparable<Production> {
      * Count of size of reductions using this Production.
      */
     protected boolean reductionUsed = false;
+
+    /**
+     * Is the nullability of the Production known or unknown?
+     */
+    protected boolean _nullable_known = false;
+
+    /**
+     * Nullability of the Production (can it derive the empty string).
+     */
+    protected boolean _nullable = false;
+
+    /**
+     * First set of the Production. This is the set of terminals that could appear at the front of some string derived
+     * from this Production.
+     */
+    protected TerminalSet _first_set = new TerminalSet();
 
     private Production(int id, ProductionItem lhs, ProductionItem[] rhs, String code, int precedence) {
         this.id = id;
@@ -116,22 +133,6 @@ public class Production implements Comparable<Production> {
     }
 
     /**
-     * Is the nullability of the Production known or unknown?
-     */
-    protected boolean _nullable_known = false;
-
-    /**
-     * Nullability of the Production (can it derive the empty string).
-     */
-    protected boolean _nullable = false;
-
-    /**
-     * First set of the Production. This is the set of terminals that could appear at the front of some string derived
-     * from this Production.
-     */
-    protected TerminalSet _first_set = new TerminalSet();
-
-    /**
      * First set of the Production. This is the set of terminals that could appear at the front of some string derived
      * from this Production.
      */
@@ -139,6 +140,7 @@ public class Production implements Comparable<Production> {
         return _first_set;
     }
 
+    @Override
     public int compareTo(Production o) {
         int result;
         if ((result = this.code.compareTo(o.code)) == 0) {
@@ -148,7 +150,7 @@ public class Production implements Comparable<Production> {
     }
 
     protected static ProductionItem createInsidePart(String code) {
-        NonTerminal terminal = NonTerminal.create("$NT" + NonTerminal.all.size(), null);
+        NonTerminal terminal = NonTerminal.create("$NT" + NonTerminal.ALL.size(), null);
         Production.create(terminal, new Object[]{code});
         ProductionItem symbolPart = new ProductionItem(terminal);
         return symbolPart;
@@ -162,11 +164,11 @@ public class Production implements Comparable<Production> {
 
         for (int i = 0; i < rhs.length; i++) {
             ProductionItem part = (ProductionItem) rhs[i];
-            if (part.label == null) {
+            if (part.label() == null) {
                 continue;
             }
-            String labelName = part.label;
-            String stackType = part.sym.type;
+            String labelName = part.label();
+            String stackType = part.sym().type;
             String stackTypeString = "Object".equals(stackType) ? "" : ("(" + stackType + ") ");
             int offset = rhs.length - i - 1;
             //
@@ -181,13 +183,13 @@ public class Production implements Comparable<Production> {
             if (index >= 0) {
                 count_value = (code.indexOf(repalce_value, index + repalce_value.length()) >= 0);
             }
-            if (count_value == false) {
+            if (!count_value) {
                 count_value = code.contains(repalce_line)
                         || code.contains(repalce_column)
                         || code.contains(repalce_symbol);
             }
             if (count_value) {
-                declaration.append("                Symbol ").append(labelName).append("Symbol = myStack.peek(").append(offset).append(");\n");
+                declaration.append("                var ").append(labelName).append("Symbol = myStack.peek(").append(offset).append(");\n");
                 code = StringUtil.replace(code, new String[]{
                     repalce_value, repalce_line, repalce_column, repalce_symbol
                 }, new String[]{
@@ -198,7 +200,7 @@ public class Production implements Comparable<Production> {
                 });
             } else {
                 code = StringUtil.replace(code, repalce_value, stackTypeString + "myStack.peek(" + offset + ").value");
-                code = code.replaceAll("return \\([a-zA-Z0-9_$]+\\) (myStack\\.peek\\([0-9]+\\)\\.value;)", "return $1");
+                code = code.replaceAll("yield \\([a-zA-Z0-9_$]+\\) (myStack\\.peek\\([0-9]+\\)\\.value;)", "yield $1");
             }
         }
         return declaration.append(code).toString();
@@ -223,7 +225,7 @@ public class Production implements Comparable<Production> {
 
         /* otherwise we need to test iterator of our parts */
         for (int pos = 0; pos < this.rhs.length; pos++) {
-            symbol sym = this.rhs[pos].sym;
+            symbol sym = this.rhs[pos].sym();
 
             /* if its a Terminal we are definitely not nullable */
             if (sym instanceof Terminal) {
@@ -249,7 +251,7 @@ public class Production implements Comparable<Production> {
     public TerminalSet checkFirstSet() {
         /* walk down the right hand side till we get past iterator nullables */
         for (ProductionItem rh : this.rhs) {
-            symbol sym = rh.sym;
+            symbol sym = rh.sym();
             /* is it a non-Terminal?*/
             if (sym instanceof NonTerminal) {
                 /* add in current firsts from that NT */
@@ -274,10 +276,10 @@ public class Production implements Comparable<Production> {
     @Override
     public String toString() {
         StringBuilder result
-                = new StringBuilder(lhs.sym.name)
+                = new StringBuilder(lhs.sym().name)
                         .append(" ::= ");
         for (ProductionItem rh : this.rhs) {
-            result.append(rh.sym.name).append(' ');
+            result.append(rh.sym().name).append(' ');
         }
         return result.toString();
     }

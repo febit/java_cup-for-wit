@@ -2,6 +2,8 @@ package java_cup;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This class represents a non-terminal symbol in the grammar. Each non terminal
@@ -11,19 +13,19 @@ import java.util.HashSet;
  */
 public class NonTerminal extends symbol {
 
-    public static final ArrayList<NonTerminal> all = new ArrayList<NonTerminal>();
+    public static final List<NonTerminal> ALL = new ArrayList<>();
 
     public static void clear() {
-        all.clear();
+        ALL.clear();
     }
 
     public static NonTerminal create(String name, String type) {
-        NonTerminal nonTerminal = new NonTerminal(all.size(), name, type);
-        all.add(nonTerminal);
+        NonTerminal nonTerminal = new NonTerminal(ALL.size(), name, type);
+        ALL.add(nonTerminal);
         return nonTerminal;
     }
 
-    public final HashSet<Production> productions = new HashSet<Production>(11);
+    public final Set<Production> productions = new HashSet<>(11);
     public final TerminalSet firstSet = new TerminalSet();
 
     protected boolean _nullable;

@@ -4,15 +4,15 @@
 
   <groupId>java_cup</groupId>
   <artifactId>java_cup_wit</artifactId>
-  <version>20171014</version>
+  <version>20260218</version>
   <packaging>jar</packaging>
 
   <name>java_cup_wit</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <java.source.version>1.7</java.source.version>
-    <java.target.version>1.7</java.target.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
   </properties>
 
   <build>
@@ -20,7 +20,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
+        <version>3.5.0</version>
         <configuration>
           <archive>
             <addMavenDescriptor>false</addMavenDescriptor>
@@ -35,7 +35,7 @@
       <plugin>
         <groupId>de.jflex</groupId>
         <artifactId>jflex-maven-plugin</artifactId>
-        <version>1.6.1</version>
+        <version>1.9.1</version>
         <executions>
           <execution>
             <goals>
@@ -50,7 +50,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.5.0</version>
+        <version>3.6.3</version>
         <executions>
           <execution>
             <id>generate-parser</id>
@@ -60,7 +60,7 @@
             </goals>
             <configuration>
               <additionalClasspathElements>
-                <additionalClasspathElement>src/main/cup/java_cup_wit-20171014.jar</additionalClasspathElement>
+                <additionalClasspathElement>src/main/cup/java_cup_wit-20260218.jar</additionalClasspathElement>
               </additionalClasspathElements>
               <includeProjectDependencies>false</includeProjectDependencies>
               <mainClass>java_cup.Main</mainClass>
@@ -78,7 +78,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.12</version>
+        <version>3.6.1</version>
         <executions>
           <execution>
             <phase>generate-sources</phase>
@@ -102,7 +102,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.15.0</version>
         <configuration>
           <debug>false</debug>
         </configuration>

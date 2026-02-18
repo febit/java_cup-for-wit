@@ -15,7 +15,7 @@ public class LalrItemSet {
     protected final HashMap<LalrItem, LalrItem> datas;
 
     public LalrItemSet() {
-        this.datas = new HashMap<LalrItem, LalrItem>(11);
+        this.datas = new HashMap<>(11);
     }
 
     /**
@@ -24,7 +24,7 @@ public class LalrItemSet {
      * @param other indicates set we should copy from.
      */
     public LalrItemSet(LalrItemSet other) {
-        datas = new HashMap<LalrItem, LalrItem>(other.datas);
+        datas = new HashMap<>(other.datas);
     }
 
     public Iterable<LalrItem> values() {

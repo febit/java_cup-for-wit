@@ -1,9 +1,6 @@
 package java_cup;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * This class represents a state in the LALR viable prefix recognition machine.
@@ -43,7 +40,7 @@ import java.util.Stack;
  */
 public class LalrState {
 
-    public static final HashMap<LalrItemSet, LalrState> all = new HashMap<LalrItemSet, LalrState>();
+    public static final Map<LalrItemSet, LalrState> ALL = new HashMap<>();
 
     public final int id;
     public final LalrItemSet items;
@@ -55,11 +52,11 @@ public class LalrState {
 
     public static LalrState create(LalrItemSet itms) {
 
-        if (all.containsKey(itms)) {
+        if (ALL.containsKey(itms)) {
             throw new InternalException("Attempt to construct a duplicate LALR state");
         }
-        LalrState state = new LalrState(all.size(), itms);
-        all.put(itms, state);
+        LalrState state = new LalrState(ALL.size(), itms);
+        ALL.put(itms, state);
         return state;
     }
 
@@ -78,11 +75,11 @@ public class LalrState {
     }
 
     public static Collection<LalrState> all() {
-        return all.values();
+        return ALL.values();
     }
 
     public static void clear() {
-        all.clear();
+        ALL.clear();
     }
 
     /**
@@ -290,7 +287,7 @@ public class LalrState {
                                 && (otherAction.type() != Action.NONASSOC)) {
                             /* if we have lower id hence priority, replace it*/
                             if (item.production.id
-                                    < ((ReduceAction) otherAction).reduceWith.id) {
+                                    < ((ReduceAction) otherAction).reduceWith().id) {
                                 /* replace the code */
                                 our_act_row[t] = act;
                             }
@@ -309,22 +306,22 @@ public class LalrState {
         }
 
         /* consider each outgoing transition */
-        for (LalrTransition trans = transitions; trans != null; trans = trans.next) {
+        for (LalrTransition trans = transitions; trans != null; trans = trans.next()) {
             /* if its on an Terminal add a shift entry */
-            symbol sym = trans.symbol;
+            symbol sym = trans.symbol();
             int symId = sym.id;
             if (sym instanceof NonTerminal) {
                 /* for non terminals add an entry to the reduce-goto table */
-                our_red_row[symId] = trans.state;
+                our_red_row[symId] = trans.state();
             } else {
-                Action act = new ShiftAction((trans.state));
+                Action act = new ShiftAction((trans.state()));
 
                 /* if we don't already have an code put this one in */
                 if (our_act_row[symId].type() == Action.ERROR) {
                     our_act_row[symId] = act;
                 } else {
                     /* we now have at least one conflict */
-                    Production p = ((ReduceAction) our_act_row[symId]).reduceWith;
+                    Production p = ((ReduceAction) our_act_row[symId]).reduceWith();
 
                     /* shift always wins */
                     if (!fixWithPrecedence(p, symId, our_act_row, act)) {
@@ -511,7 +508,7 @@ public class LalrState {
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append("LalrState [").append(id).append("]: ").append(items).append('\n');
-        for (LalrTransition tr = transitions; tr != null; tr = tr.next) {
+        for (LalrTransition tr = transitions; tr != null; tr = tr.next()) {
             result.append(tr).append('\n');
         }
         return result.toString();

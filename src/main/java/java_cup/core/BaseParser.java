@@ -14,7 +14,7 @@ abstract class BaseParser {
     private static final short[][] ACTION_TABLE = loadData("Action");
     private static final short[][] REDUCE_TABLE = loadData("Reduce");
 
-    final Stack<Symbol> symbolStack = new Stack<Symbol>(24);
+    final Stack<Symbol> tokenStack = new Stack<>(24);
     boolean goonParse;
 
     abstract Object doAction(int actionId) throws Exception;
@@ -24,7 +24,7 @@ abstract class BaseParser {
         int act;
         Symbol currentToken;
         Symbol currentSymbol;
-        final Stack<Symbol> stack = this.symbolStack;
+        final Stack<Symbol> stack = this.tokenStack;
         stack.clear();
 
         //Start Symbol
