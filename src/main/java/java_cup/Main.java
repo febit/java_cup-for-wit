@@ -35,6 +35,7 @@ public class Main {
     public static final List<String> IMPORTS = new ArrayList<>();
 
     public static String packageName;
+    public static String parserCode;
     public static String parserClassName;
     public static int unusedTermCount = 0;
     public static int conflictCount = 0;
@@ -49,6 +50,7 @@ public class Main {
         Main.IMPORTS.clear();
         Main.parserClassName = "Parser";
         Main.tokensClassName = "Tokens";
+        Main.parserCode = null;
         Main.packageName = null;
         Main.actionExceptionClassName = null;
         Main.startProduction = null;
@@ -135,6 +137,7 @@ public class Main {
                         + "  Legal options:\n"
                         + "    -destdir name  specify the destination directory\n"
                         + "    -parser name   specify parser class name [default \"Parser\"]\n"
+                        + "    -parser-code code   specify parser action code to be included in the parser class\n"
                         + "    -symbols name  specify tokens class name [default \"Tokens\"]\n"
                         + "    -dump_grammar  produce a dump of the symbols and grammar\n"
                         + "    -dump_states   produce a dump of parse state machine\n"
@@ -184,6 +187,8 @@ public class Main {
                     }
                 } else if (arg.equals("-parser")) {
                     parserClassName = nextArg;
+                } else if (arg.equals("-parser-code")) {
+                    parserCode = nextArg;
                 } else if (arg.equals("-exception")) {
                     actionExceptionClassName = nextArg;
                 } else if (arg.equals("-symbols")) {
@@ -328,6 +333,13 @@ public class Main {
         out.println(" */");
         out.println("public class " + Main.parserClassName + " extends AbstractParser {");
         out.println();
+
+        if (Main.parserCode != null) {
+            out.println("    /* user supplied code */");
+            out.println();
+            out.println(Main.parserCode);
+            out.println();
+        }
 
         out.println("    ");
         out.println("    @SuppressWarnings({");

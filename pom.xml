@@ -4,7 +4,7 @@
 
   <groupId>java_cup</groupId>
   <artifactId>java_cup_wit</artifactId>
-  <version>20260218</version>
+  <version>20260418</version>
   <packaging>jar</packaging>
 
   <name>java_cup_wit</name>
@@ -60,7 +60,7 @@
             </goals>
             <configuration>
               <additionalClasspathElements>
-                <additionalClasspathElement>src/main/cup/java_cup_wit-20260218.jar</additionalClasspathElement>
+                <additionalClasspathElement>src/main/cup/java_cup_wit-20260418.jar</additionalClasspathElement>
               </additionalClasspathElements>
               <includeProjectDependencies>false</includeProjectDependencies>
               <mainClass>java_cup.Main</mainClass>
