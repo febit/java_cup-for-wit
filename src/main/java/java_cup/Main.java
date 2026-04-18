@@ -95,17 +95,16 @@ public class Main {
                 emitActionData();
                 emitReduceData();
 
-                PrintWriter parserWriter = new PrintWriter(
+                try (var parserWriter = new PrintWriter(
                         new BufferedOutputStream(new FileOutputStream(new File(destDir,
                                 parserClassName + ".java")), 4096));
-                PrintWriter symbolWriter = new PrintWriter(
-                        new BufferedOutputStream(new FileOutputStream(new File(destDir,
-                                tokensClassName + ".java")), 4096));
-
-                emitTokens(symbolWriter);
-                emitParser(parserWriter);
-                parserWriter.close();
-                symbolWriter.close();
+                     var symbolWriter = new PrintWriter(
+                             new BufferedOutputStream(new FileOutputStream(new File(destDir,
+                                     tokensClassName + ".java")), 4096));
+                ) {
+                    emitTokens(symbolWriter);
+                    emitParser(parserWriter);
+                }
                 written = true;
             }
         }
@@ -146,7 +145,7 @@ public class Main {
         System.exit(1);
     }
 
-    private static void parseArgs(String args[]) {
+    private static void parseArgs(String[] args) {
         int len = args.length;
         for (int i = 0; i < len; ) {
             final String arg = args[i++];
@@ -652,7 +651,6 @@ public class Main {
     }
 
     public static void dumpTables() {
-        final PrintStream err = System.err;
 
         err.println("-------- ACTION_TABLE -------- ");
         for (int row = 0; row < actionTable.length; row++) {
